@@ -12,8 +12,10 @@
 #include "Delay.h"
 
 #define PLUGIN_VERSION 1    
-#define DEFAULT_DELAY_LEN 100.0
-#define DEFAULT_FEEDBACK_GAIN 35.0f // 35%
+
+#define DEFAULT_DELAY_LEN       100.0
+#define DEFAULT_FEEDBACK_GAIN   35.0f
+#define DEFAULT_DRY_WET         35.0f
 
 namespace ParameterID
 {
@@ -21,6 +23,7 @@ namespace ParameterID
 
     PARAMETER_ID(delaySize)
     PARAMETER_ID(feedback)
+    PARAMETER_ID(dryWet)
 
 #undef PARAMETER_ID
 }
@@ -76,6 +79,7 @@ private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioParameterFloat* delaySizeParam;
     juce::AudioParameterFloat* feedbackParam;
+    juce::AudioParameterFloat* dryWetParam;
 
     std::atomic<bool> parametersChanged{ false };
     void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override

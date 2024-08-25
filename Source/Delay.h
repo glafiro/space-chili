@@ -12,9 +12,9 @@ using std::array;
 #define DEFAULT_SAMPLE_RATE 44100
 #define DEFAULT_FEEDBACK_GAIN 0.4f
 #define DEFAULT_FILTER_FREQUENCY 3.0f
+#define DEFAULT_DRY_WET_MIX 0.35f
 
 // TODO:
-// Feedback
 // Dry / wet
 // Stereo delay
 // Sync left and right
@@ -35,7 +35,8 @@ namespace dsp
 			targetDelaySize(0.0f),
 			feedbackGain(DEFAULT_FEEDBACK_GAIN),
 			filter(),
-			sampleRate(DEFAULT_SAMPLE_RATE)
+			sampleRate(DEFAULT_SAMPLE_RATE),
+			dryWetMix(DEFAULT_DRY_WET_MIX)
 		{}
 
 		void prepare(double sampleRate, int blockSize, double lengthInMs) {
@@ -59,9 +60,10 @@ namespace dsp
 
 		}
 
-		void update(float delayLengthInMs, float newFeedbackGain) {
+		void update(float delayLengthInMs, float newFeedbackGain, float newDryWetMix) {
 			targetDelaySize = msToSamples(static_cast<float>(sampleRate), delayLengthInMs);
 			feedbackGain = newFeedbackGain;
+			dryWetMix = newDryWetMix;
 		}
 
 		void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
@@ -79,7 +81,7 @@ namespace dsp
 
 					for (auto s = 0; s < numSamples; ++s) {
 						ring->write(samples[s], feedbackGain);
-						samples[s] += ring->read(delaySizeParamBuffer[s]);
+						samples[s] = samples[s] * (1.0 - dryWetMix) + ring->read(delaySizeParamBuffer[s]) * dryWetMix;
 					}
 				}
 			}
@@ -88,13 +90,13 @@ namespace dsp
 	protected:
 		double sampleRate;
 		array<DelayRingBuffer<float>, 2> ringBuffer;
-	
-		float targetDelaySize;
 		vector<int> delaySizeParamBuffer;
-
-		float feedbackGain;
-
 		OnePoleFilter filter;
+
+		// Parameters
+		float targetDelaySize;
+		float feedbackGain;
+		float dryWetMix;
 	};
 
 }
