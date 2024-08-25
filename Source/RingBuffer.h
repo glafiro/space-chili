@@ -27,8 +27,8 @@ public:
 
     DelayRingBuffer(int size = 0) : buffer(size), bufferSize(size), delaySize(0), writePointer(0), readPointer(0) {}
 
-    void write(T value) {
-        buffer[writePointer] = value;
+    void write(T value, float feedbackGain) {
+        buffer[writePointer] = feedbackGain * buffer[readPointer] + value ;
         writePointer = (writePointer + 1) % bufferSize;
     }
 

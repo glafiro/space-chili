@@ -34,6 +34,7 @@ DelayAudioProcessor::DelayAudioProcessor()
 {
     apvts.state.addListener(this);
     castParameter(apvts, ParameterID::delaySize, delaySizeParam);
+    castParameter(apvts, ParameterID::feedback, feedbackParam);
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -163,7 +164,8 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 
 void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer) {
     float delaySizeInMs = delaySizeParam->get();
-    delay.update(delaySizeInMs);
+    float feedbackGain = feedbackParam->get() * 0.01f * 0.98f;
+    delay.update(delaySizeInMs, feedbackGain);
 }
 
 //==============================================================================
@@ -203,6 +205,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         "Delay Size",
         juce::NormalisableRange<float>{ 0.00001f, MAX_DELAY_LENGTH },
         DEFAULT_DELAY_LEN
+        ));
+
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::feedback,
+        "Feedback",
+        juce::NormalisableRange<float>{0.0f, 100.0f, 0.1f},
+        DEFAULT_FEEDBACK_GAIN
         ));
 
     return layout;
