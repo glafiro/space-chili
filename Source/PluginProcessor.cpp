@@ -105,7 +105,7 @@ void DelayAudioProcessor::changeProgramName (int index, const juce::String& newN
 //==============================================================================
 void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    delay.prepare(sampleRate, samplesPerBlock, 100.0);
+    delay.prepare(sampleRate, samplesPerBlock, 100.0f);
 }
 
 void DelayAudioProcessor::releaseResources()

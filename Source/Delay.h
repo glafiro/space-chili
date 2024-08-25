@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 #include "RingBuffer.h"
+#include "OnePoleFilter.h"
 
 using std::vector;
 using std::array;
@@ -30,50 +31,53 @@ namespace dsp
 
 		Delay() :
 			ringBuffer(),
-			writeHeadBuffer(),
-			writeHeadIndex(0),
+			currentDelaySize(0.0f),
+			targetDelaySize(0.0f),
+			filter(1.0f),
 			delaySize(1),
 			sampleRate(DEFAULT_SAMPLE_RATE)
 		{}
 
 		void prepare(double sampleRate, int blockSize, double lengthInMs) {
-			
+
 			this->sampleRate = sampleRate;
-		
+
 			// Get length in samples using the formula sr * ms * 0.001
 			const auto lengthInSamples = static_cast<int>(msToSamples(sampleRate, lengthInMs));
 			const auto maxLengthInSamples = static_cast<int>(msToSamples(sampleRate, MAX_DELAY_LENGTH));
-			
+
 			// resize left and right ring buffers to the desired length. For now, left = right.
 			delaySize = lengthInSamples;
 			for (auto& ch : ringBuffer) {
 				ch.setSize(maxLengthInSamples);
-				ch.updateDelaySize(lengthInSamples);
 			}
-			
 
-			// resize head buffer to block size
-			writeHeadBuffer.resize(blockSize); 
+			targetDelaySize = lengthInSamples;
+			currentDelaySize = targetDelaySize;
 
-			// set head index to 0 
-			writeHeadIndex = 0;
+			delaySizeParamBuffer.resize(blockSize, 0.0f);
+
+			filter.setFrequency(1.0f / sampleRate);
+
 		}
 
 		void update(float delayLengthInMs) {
-			delaySize = static_cast<int>(msToSamples(static_cast<float>(sampleRate), delayLengthInMs));
-			for (auto& ch : ringBuffer) {
-				ch.updateDelaySize(delaySize);
-			}
+			targetDelaySize = msToSamples(static_cast<float>(sampleRate), delayLengthInMs);
 		}
 
 		void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
+
 			if (delaySize != 0) {
 				// initialize each entry in the head buffer to the next element to be written
+				//auto incr = (localTargetDelaySize - currentDelaySize) / static_cast<float>(numSamples);
+
 				for (auto s = 0; s < numSamples; ++s) {
-					writeHeadIndex = (writeHeadIndex + 1) % delaySize;
-					writeHeadBuffer[s] = writeHeadIndex;
+					auto currentDelaySize = filter.process(targetDelaySize);
+					delaySizeParamBuffer[s] = static_cast<int>(currentDelaySize);
 				}
-				
+
+				DBG(delaySizeParamBuffer[0]);
+
 				for (auto ch = 0; ch < numChannels; ++ch) {
 					// the samples to be processed
 					auto samples = inputBuffer[ch];
@@ -82,22 +86,26 @@ namespace dsp
 
 					for (auto s = 0; s < numSamples; ++s) {
 						ring->write(samples[s]);
-						samples[s] += 0.5 * ring->read();
+						samples[s] += ring->read(delaySizeParamBuffer[s]);
 					}
-				} 
+				}
 			}
 		}
 
 	protected:
 		// two ring buffers (one for each channel)
 		array<DelayRingBuffer<float>, 2> ringBuffer;
-		// the array containing the write indices
-		std::vector<int> writeHeadBuffer;
-		// write head index
-		int writeHeadIndex{ 0 };
+
 		// delay size in samples
 		int delaySize;
+
+		float targetDelaySize;
+		float currentDelaySize;
+		vector<int> delaySizeParamBuffer;
+
 		double sampleRate;
+
+		OnePoleFilter filter;
 	};
 
 }

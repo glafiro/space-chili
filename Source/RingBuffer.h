@@ -19,30 +19,28 @@ class DelayRingBuffer
 {
     vector<T> buffer;
     size_t bufferSize;
-    size_t delaySize;
+    int delaySize;
     int writePointer;
     int readPointer;
 
 public:
-    
-    DelayRingBuffer(size_t size = 0) : buffer(size), bufferSize(size), delaySize(0), writePointer(0), readPointer(0) {}
+
+    DelayRingBuffer(int size = 0) : buffer(size), bufferSize(size), delaySize(0), writePointer(0), readPointer(0) {}
 
     void write(T value) {
         buffer[writePointer] = value;
-        writePointer = (writePointer + 1) % delaySize;
+        writePointer = (writePointer + 1) % bufferSize;
     }
 
-    T read() {
-        readPointer = writePointer;
+    T read(int delaySize) {
+        readPointer = writePointer - delaySize;
+        if (readPointer < 0) readPointer += bufferSize;
         return buffer[readPointer];
     }
 
-    void setSize(size_t newSize) {
+    void setSize(int newSize) {
         buffer.resize(newSize, static_cast<T>(0.0f));
         bufferSize = newSize;
     }
 
-    void updateDelaySize(size_t newDelaySize) {
-        delaySize = newDelaySize;
-    }
 };
