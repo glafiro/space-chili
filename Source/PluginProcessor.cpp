@@ -33,7 +33,8 @@ DelayAudioProcessor::DelayAudioProcessor()
 #endif
 {
     apvts.state.addListener(this);
-    castParameter(apvts, ParameterID::delaySize, delaySizeParam);
+    castParameter(apvts, ParameterID::leftDelaySize, leftDelaySizeParam);
+    castParameter(apvts, ParameterID::rightDelaySize, rightDelaySizeParam);
     castParameter(apvts, ParameterID::feedback, feedbackParam);
     castParameter(apvts, ParameterID::dryWet, dryWetParam);
 }
@@ -164,10 +165,11 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 }
 
 void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer) {
-    float delaySizeInMs = delaySizeParam->get();
+    float leftDelaySize = leftDelaySizeParam->get();
+    float rightDelaySize = rightDelaySizeParam->get();
     float feedbackGain = feedbackParam->get() * 0.01f * 0.98f; // Maximum is actually 98%
     float dryWetMix = dryWetParam->get() * 0.01f;
-    delay.update(delaySizeInMs, feedbackGain, dryWetMix);
+    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix);
 }
 
 //==============================================================================
@@ -203,8 +205,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
 
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
-        ParameterID::delaySize,
-        "Delay Size",
+        ParameterID::leftDelaySize,
+        "Left (ms)",
+        juce::NormalisableRange<float>{ 0.00001f, MAX_DELAY_LENGTH },
+        DEFAULT_DELAY_LEN
+        ));
+
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::rightDelaySize,
+        "Right (ms)",
         juce::NormalisableRange<float>{ 0.00001f, MAX_DELAY_LENGTH },
         DEFAULT_DELAY_LEN
         ));

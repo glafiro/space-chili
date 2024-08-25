@@ -21,7 +21,8 @@ namespace ParameterID
 {
 #define PARAMETER_ID(str) const juce::ParameterID str(#str, PLUGIN_VERSION);
 
-    PARAMETER_ID(delaySize)
+    PARAMETER_ID(leftDelaySize)
+    PARAMETER_ID(rightDelaySize)
     PARAMETER_ID(feedback)
     PARAMETER_ID(dryWet)
 
@@ -77,7 +78,8 @@ private:
     // Parameters
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-    juce::AudioParameterFloat* delaySizeParam;
+    juce::AudioParameterFloat* leftDelaySizeParam;
+    juce::AudioParameterFloat* rightDelaySizeParam;
     juce::AudioParameterFloat* feedbackParam;
     juce::AudioParameterFloat* dryWetParam;
 
