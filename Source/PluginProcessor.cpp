@@ -9,6 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+
 template<typename T>
 inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
     const juce::ParameterID& id, T& destination)
@@ -16,6 +17,11 @@ inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
     destination = dynamic_cast<T>(apvts.getParameter(id.getParamID()));
     jassert(destination);
     // parameter does not exist or wrong type
+}
+
+float BPM2Ms(int choice, float tempo=120.0f) {
+    float timeMultiplier = static_cast<float>(1 << choice);
+    return static_cast<float>((60000.0f / tempo) * (4.0f / timeMultiplier));
 }
 
 //==============================================================================
@@ -37,6 +43,10 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::rightDelaySize, rightDelaySizeParam);
     castParameter(apvts, ParameterID::feedback, feedbackParam);
     castParameter(apvts, ParameterID::dryWet, dryWetParam);
+    castParameter(apvts, ParameterID::delaySync, delaySyncParam);
+    castParameter(apvts, ParameterID::syncToHost, syncToHostParam);
+    castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
+    castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -108,7 +118,7 @@ void DelayAudioProcessor::changeProgramName (int index, const juce::String& newN
 //==============================================================================
 void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    delay.prepare(sampleRate, samplesPerBlock, 100.0f);
+    delay.prepare(sampleRate, samplesPerBlock, DEFAULT_DELAY_LEN);
 }
 
 void DelayAudioProcessor::releaseResources()
@@ -153,8 +163,15 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         buffer.clear (i, 0, buffer.getNumSamples());
 
     bool expected = true;
-    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
-        update(buffer);
+    bool changedBPM = false;
+    auto newBPM = getPlayHead()->getPosition()->getBpm();
+    if (newBPM.hasValue() && *newBPM != currentBPM) {
+        currentBPM = *newBPM;
+        changedBPM = true;
+    }
+    
+    if (changedBPM || isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
+        update(buffer, currentBPM);
     }
 
     delay.processBlock(
@@ -164,12 +181,26 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     );
 }
 
-void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer) {
-    float leftDelaySize = leftDelaySizeParam->get();
-    float rightDelaySize = rightDelaySizeParam->get();
+void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float bpm) {
+    bool isSynced = delaySyncParam->get();
+
+    float leftDelaySize;
+    float rightDelaySize;
+
+    if (syncToHostParam->get()) {
+        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm);
+        rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm);
+    }
+
+    else {
+        leftDelaySize = leftDelaySizeParam->get();
+        rightDelaySize = rightDelaySizeParam->get();
+    }
+
     float feedbackGain = feedbackParam->get() * 0.01f * 0.98f; // Maximum is actually 98%
     float dryWetMix = dryWetParam->get() * 0.01f;
-    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix);
+
+    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, isSynced);
 }
 
 //==============================================================================
@@ -207,14 +238,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::leftDelaySize,
         "Left (ms)",
-        juce::NormalisableRange<float>{ 0.00001f, MAX_DELAY_LENGTH },
+        juce::NormalisableRange<float>{ 0.00001f, 1000.0f },
         DEFAULT_DELAY_LEN
         ));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::rightDelaySize,
         "Right (ms)",
-        juce::NormalisableRange<float>{ 0.00001f, MAX_DELAY_LENGTH },
+        juce::NormalisableRange<float>{ 0.00001f, 1000.0f },
         DEFAULT_DELAY_LEN
         ));
 
@@ -230,6 +261,32 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         "Dry/Wet",
         juce::NormalisableRange<float>{0.0f, 100.0f, 0.1f},
         DEFAULT_DRY_WET
+        ));
+    
+    layout.add(std::make_unique <juce::AudioParameterBool>(
+        ParameterID::delaySync,
+        "Sync",
+        false
+        ));    
+    
+    layout.add(std::make_unique <juce::AudioParameterBool>(
+        ParameterID::syncToHost,
+        "Sync to host",
+        false
+        ));    
+    
+    layout.add(std::make_unique <juce::AudioParameterChoice>(
+        ParameterID::syncedTimeSubdivisionL,
+        "Time",
+        juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
+        3
+        ));
+    
+    layout.add(std::make_unique <juce::AudioParameterChoice>(
+        ParameterID::syncedTimeSubdivisionR,
+        "Time",
+        juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
+        3
         ));
 
     return layout;

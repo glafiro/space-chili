@@ -13,9 +13,10 @@
 
 #define PLUGIN_VERSION 1    
 
-#define DEFAULT_DELAY_LEN       100.0
+#define DEFAULT_DELAY_LEN       250.0
 #define DEFAULT_FEEDBACK_GAIN   35.0f
 #define DEFAULT_DRY_WET         35.0f
+#define DEFAULT_BPM             120.0f
 
 namespace ParameterID
 {
@@ -25,6 +26,11 @@ namespace ParameterID
     PARAMETER_ID(rightDelaySize)
     PARAMETER_ID(feedback)
     PARAMETER_ID(dryWet)
+    PARAMETER_ID(delaySync)
+    PARAMETER_ID(syncToHost)
+    PARAMETER_ID(syncedTimeSubdivisionL)
+    PARAMETER_ID(syncedTimeSubdivisionR)
+
 
 #undef PARAMETER_ID
 }
@@ -82,14 +88,20 @@ private:
     juce::AudioParameterFloat* rightDelaySizeParam;
     juce::AudioParameterFloat* feedbackParam;
     juce::AudioParameterFloat* dryWetParam;
+    juce::AudioParameterBool* delaySyncParam;
+    juce::AudioParameterBool* syncToHostParam;
+    juce::AudioParameterChoice* syncedTimeSubdivParamL;
+    juce::AudioParameterChoice* syncedTimeSubdivParamR;
 
     std::atomic<bool> parametersChanged{ false };
+    float currentBPM{120.0f};
+
     void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override
     {
         parametersChanged.store(true);
     }
 
-    void update(juce::AudioBuffer<float>& buffer);
+    void update(juce::AudioBuffer<float>& buffer, float bpm);
 
     // DSP
     dsp::Delay delay;

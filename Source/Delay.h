@@ -8,16 +8,17 @@
 using std::vector;
 using std::array;
 
-#define MAX_DELAY_LENGTH 1000.0
+#define MAX_DELAY_LENGTH 10000.0
 #define DEFAULT_SAMPLE_RATE 44100
 #define DEFAULT_FEEDBACK_GAIN 0.4f
 #define DEFAULT_FILTER_FREQUENCY 3.0f
 #define DEFAULT_DRY_WET_MIX 0.35f
 
 // TODO:
-// Sync left and right
+// Sync left and right (wait until UI is done)
 // Sync to host
 // Ping pong delay
+// Add linear interpolation to all parameters
 
 template<typename T>
 T msToSamples(T sampleRate, T lengthInMs) noexcept {
@@ -61,9 +62,18 @@ namespace dsp
 			filters[Channel::RIGHT].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
 		}
 
-		void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, float newDryWetMix) {
+		void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 
+					float newDryWetMix, bool isSynced) {
+
 			targetDelaySizes[Channel::LEFT] = msToSamples(static_cast<float>(sampleRate), leftDelayLength);
-			targetDelaySizes[Channel::RIGHT] = msToSamples(static_cast<float>(sampleRate), rightDelayLength);
+
+			if (isSynced) {
+				targetDelaySizes[Channel::RIGHT] = targetDelaySizes[Channel::LEFT];
+			}
+			else {
+				targetDelaySizes[Channel::RIGHT] = msToSamples(static_cast<float>(sampleRate), rightDelayLength);
+			}
+			
 			feedbackGain = newFeedbackGain;
 			dryWetMix = newDryWetMix;
 		}
