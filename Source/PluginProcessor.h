@@ -30,6 +30,8 @@ namespace ParameterID
     PARAMETER_ID(syncToHost)
     PARAMETER_ID(syncedTimeSubdivisionL)
     PARAMETER_ID(syncedTimeSubdivisionR)
+    PARAMETER_ID(pingPong)
+
 
 
 #undef PARAMETER_ID
@@ -92,6 +94,7 @@ private:
     juce::AudioParameterBool* syncToHostParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
+    juce::AudioParameterBool* pingPongParam;
 
     std::atomic<bool> parametersChanged{ false };
     float currentBPM{120.0f};
@@ -104,6 +107,6 @@ private:
     void update(juce::AudioBuffer<float>& buffer, float bpm);
 
     // DSP
-    dsp::Delay delay;
+    Delay delay;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayAudioProcessor)
 };

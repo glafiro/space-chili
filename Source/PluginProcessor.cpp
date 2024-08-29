@@ -47,6 +47,7 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::syncToHost, syncToHostParam);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
+    castParameter(apvts, ParameterID::pingPong, pingPongParam);
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -118,7 +119,7 @@ void DelayAudioProcessor::changeProgramName (int index, const juce::String& newN
 //==============================================================================
 void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    delay.prepare(sampleRate, samplesPerBlock, DEFAULT_DELAY_LEN);
+    delay.prepare(static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
 }
 
 void DelayAudioProcessor::releaseResources()
@@ -200,7 +201,9 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float bpm) {
     float feedbackGain = feedbackParam->get() * 0.01f * 0.98f; // Maximum is actually 98%
     float dryWetMix = dryWetParam->get() * 0.01f;
 
-    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, isSynced);
+    bool pingPong = pingPongParam->get();
+
+    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, isSynced, pingPong);
 }
 
 //==============================================================================
@@ -238,14 +241,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::leftDelaySize,
         "Left (ms)",
-        juce::NormalisableRange<float>{ 0.00001f, 1000.0f },
+        juce::NormalisableRange<float>{ 1.0f, 1000.0f },
         DEFAULT_DELAY_LEN
         ));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::rightDelaySize,
         "Right (ms)",
-        juce::NormalisableRange<float>{ 0.00001f, 1000.0f },
+        juce::NormalisableRange<float>{ 1.0f, 1000.0f },
         DEFAULT_DELAY_LEN
         ));
 
@@ -287,6 +290,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         "Time",
         juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
         3
+        ));
+
+    layout.add(std::make_unique <juce::AudioParameterBool>(
+        ParameterID::pingPong,
+        "Ping Pong",
+        false
         ));
 
     return layout;

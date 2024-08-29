@@ -5,9 +5,9 @@
               pluginManufacturerCode="GLAF" pluginCode="DLAY" cppLanguageStandard="20">
   <MAINGROUP id="oEGvMH" name="Delay">
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
+      <FILE id="imZ1nj" name="Delay.h" compile="0" resource="0" file="Source/Delay.h"/>
+      <FILE id="DRyOFr" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
       <FILE id="qtRpBn" name="OnePoleFilter.h" compile="0" resource="0" file="Source/OnePoleFilter.h"/>
-      <FILE id="aCNkgq" name="RingBuffer.h" compile="0" resource="0" file="Source/RingBuffer.h"/>
-      <FILE id="v5dddV" name="Delay.h" compile="0" resource="0" file="Source/Delay.h"/>
       <FILE id="TT4xHj" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="NpIHhW" name="PluginProcessor.h" compile="0" resource="0"
