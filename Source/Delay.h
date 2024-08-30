@@ -10,7 +10,7 @@ using std::vector;
 using std::array;
 
 // Default values
-#define MAX_DELAY_LENGTH			10000.0f
+#define MAX_DELAY_LENGTH			2500.0f
 #define DEFAULT_SAMPLE_RATE			44100
 #define DEFAULT_FEEDBACK_GAIN		0.4f
 #define DEFAULT_FILTER_FREQUENCY	3.0f
@@ -50,6 +50,9 @@ struct Delay {
 			targetDelaySizes[channel] = lengthInSamples;
 			filters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
 		}
+
+		DBG("buffer size:");
+		DBG(ringBuffers[0].getSize());
 	}
 
 	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 

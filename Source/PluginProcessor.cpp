@@ -45,7 +45,9 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::feedback, feedbackParam);
     castParameter(apvts, ParameterID::dryWet, dryWetParam);
     castParameter(apvts, ParameterID::delaySync, delaySyncParam);
-    castParameter(apvts, ParameterID::syncToHost, syncToHostParam);
+    castParameter(apvts, ParameterID::syncToBPM, syncToBPMParam);
+    castParameter(apvts, ParameterID::internalOrHost, internalOrHostParam);
+    castParameter(apvts, ParameterID::internalBPM, internalBPMParam);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
     castParameter(apvts, ParameterID::triplet, tripletParam);
@@ -168,15 +170,16 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         buffer.clear (i, 0, buffer.getNumSamples());
 
     bool expected = true;
-    bool changedBPM = false;
-    auto newBPM = getPlayHead()->getPosition()->getBpm();
-    if (newBPM.hasValue() && *newBPM != currentBPM) {
-        currentBPM = *newBPM;
-        changedBPM = true;
+    bool bpmChanged = false;
+    auto hostBPM = getPlayHead()->getPosition()->getBpm();
+
+    if (useHostBPM && hostBPM.hasValue() && *hostBPM != currentHostBPM) {
+        currentHostBPM = *hostBPM;
+        bpmChanged = true;
     }
-    
-    if (changedBPM || isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
-        update(buffer, currentBPM);
+
+    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
+        update(buffer, currentHostBPM);
     }
 
     delay.processBlock(
@@ -186,13 +189,14 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     );
 }
 
-void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float bpm) {
+void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM) {
+    float bpm = useHostBPM ? hostBPM : internalBPMParam->get();
     bool linkedSizes = delaySyncParam->get();
 
     float leftDelaySize;
     float rightDelaySize;
 
-    if (syncToHostParam->get()) {
+    if (syncToBPMParam->get()) {
         leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, tripletParam->get());
         if (linkedSizes) rightDelaySize = leftDelaySize;
         else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, tripletParam->get());
@@ -281,10 +285,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         ));    
     
     layout.add(std::make_unique <juce::AudioParameterBool>(
-        ParameterID::syncToHost,
-        "Sync to host",
+        ParameterID::syncToBPM,
+        "Sync to BPM",
         false
         ));    
+
+    layout.add(std::make_unique <juce::AudioParameterChoice>(
+        ParameterID::internalOrHost,
+        "Clock source",
+        juce::StringArray{ "Internal", "Host"},
+        1
+    ));
+
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::internalBPM,
+        "Tempo",
+        juce::NormalisableRange<float>{0.0f, 999.0f, 1.0f},
+        DEFAULT_BPM
+    ));
+
     
     layout.add(std::make_unique <juce::AudioParameterChoice>(
         ParameterID::syncedTimeSubdivisionL,

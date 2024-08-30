@@ -14,7 +14,7 @@
 #include <vector>
 using std::vector;
 
-#define DEFAULT_BUFFER_SIZE 134217728 // ~2.796 seconds @ 48 KhZ
+#define DEFAULT_BUFFER_SIZE 1
 
 template <typename T>
 class RingBuffer
@@ -59,6 +59,10 @@ public:
         T b = readInt(delaySize + 1);
         T f = delaySize - static_cast<int>(delaySize);
         return lerp(a, b, f);
+    }
+
+    int getSize() {
+        return bufferSize * 4.0f;
     }
 
     ~RingBuffer() {}

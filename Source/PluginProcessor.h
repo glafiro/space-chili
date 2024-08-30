@@ -27,8 +27,9 @@ namespace ParameterID
     PARAMETER_ID(feedback)
     PARAMETER_ID(dryWet)
     PARAMETER_ID(delaySync)
-    PARAMETER_ID(syncToHost)
-    PARAMETER_ID(syncToHost)
+    PARAMETER_ID(syncToBPM)
+    PARAMETER_ID(internalOrHost)
+    PARAMETER_ID(internalBPM)
     PARAMETER_ID(syncedTimeSubdivisionL)
     PARAMETER_ID(syncedTimeSubdivisionR)
     PARAMETER_ID(triplet)
@@ -94,7 +95,9 @@ private:
     juce::AudioParameterFloat* feedbackParam;
     juce::AudioParameterFloat* dryWetParam;
     juce::AudioParameterBool* delaySyncParam;
-    juce::AudioParameterBool* syncToHostParam;
+    juce::AudioParameterBool* syncToBPMParam;
+    juce::AudioParameterChoice* internalOrHostParam;
+    juce::AudioParameterFloat* internalBPMParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
     juce::AudioParameterBool* tripletParam;
@@ -102,11 +105,13 @@ private:
     juce::AudioParameterFloat* leftRightRatioParam;
 
     std::atomic<bool> parametersChanged{ false };
-    float currentBPM{120.0f};
+    std::atomic<int> useHostBPM{ false };
+    float currentHostBPM {DEFAULT_BPM};
 
     void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override
     {
         parametersChanged.store(true);
+        useHostBPM.store(internalOrHostParam->getIndex());
     }
 
     void update(juce::AudioBuffer<float>& buffer, float bpm);
