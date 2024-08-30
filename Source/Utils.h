@@ -9,6 +9,7 @@
 */
 
 #pragma once
+#include <cmath>
 
 // Utility functions
 template<typename T>
@@ -19,4 +20,8 @@ T lengthToSamples(T sr, T n) noexcept {
 inline int wrapNegative(int value, int maxValue) {
 	if (value < 0) return value += maxValue;
 	else return value;
+}
+
+inline unsigned int nearestPowerOfTwo(int n) {
+	return pow(2, ceil(log(n) / log(2)));
 }

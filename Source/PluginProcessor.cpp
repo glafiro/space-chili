@@ -119,7 +119,8 @@ void DelayAudioProcessor::changeProgramName (int index, const juce::String& newN
 //==============================================================================
 void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    delay.prepare(static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
+    int nChannels = getTotalNumInputChannels();
+    delay.prepare(nChannels, static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
 }
 
 void DelayAudioProcessor::releaseResources()

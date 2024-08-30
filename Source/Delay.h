@@ -4,6 +4,7 @@
 #include <vector>
 #include "OnePoleFilter.h"
 #include "Utils.h"
+#include "RingBuffer.h"
 
 using std::vector;
 using std::array;
@@ -17,41 +18,36 @@ using std::array;
 #define DEFAULT_PING_PONG			false
 
 
-#define MAX_CHANNELS 2
-#define LEFT		 0
-#define RIGHT		 1	
+#define MAX_CHANNELS			2
+#define DEFAULT_INPUT_CHANNELS	2	
+
+#define LEFT	0
+#define RIGHT	1
 
 struct Delay {
 
 	Delay() :
-		ringBuffer(),
-		readPointers(),
-		writePointers(),
-		inputSamples(),
-		delayOutputs(),
 		targetDelaySizes(),
 		delayBufferSize(0),
 		pingPong(false),
 		feedbackGain(DEFAULT_FEEDBACK_GAIN),
 		sampleRate(DEFAULT_SAMPLE_RATE),
+		nInputChannels(DEFAULT_INPUT_CHANNELS),
 		dryWetMix(DEFAULT_DRY_WET_MIX)
 	{}
 
-	void prepare(float _sampleRate, int blockSize, float lengthInMs) {
+	void prepare(float _nInputChannels, float _sampleRate, int blockSize, float lengthInMs) {
 
 		sampleRate = _sampleRate;
+		nInputChannels = _nInputChannels;
 
 		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, lengthInMs)));
 		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
 
 		for (int channel = 0; channel < MAX_CHANNELS; ++channel) {
-			ringBuffer[channel].resize(delayBufferSize, 0.0f);
-			
-			writePointers[channel] = delayBufferSize;
-			readPointers[channel] = wrapNegative(writePointers[channel] - lengthInSamples, delayBufferSize);
-			
+			ringBuffers[channel] = RingBuffer<float>(delayBufferSize);
+						
 			targetDelaySizes[channel] = lengthInSamples;
-			
 			filters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
 		}
 	}
@@ -62,7 +58,6 @@ struct Delay {
 		pingPong = _pingPong;
 	
 		targetDelaySizes[0] = lengthToSamples(sampleRate, leftDelayLength);
-		readPointers[0] = wrapNegative(writePointers[0] - targetDelaySizes[0], static_cast<float>(delayBufferSize));
 
 		// For now, the left channel acts as the master. When completing the UI, the sliders will be linked and the
 		// master value is the last one being changed.
@@ -72,9 +67,7 @@ struct Delay {
 		else {
 			targetDelaySizes[1] = lengthToSamples(sampleRate, rightDelayLength);
 		}
-			
-		readPointers[1] = wrapNegative(writePointers[1] - static_cast<int>(targetDelaySizes[1]), delayBufferSize);
-			
+						
 		feedbackGain = newFeedbackGain;
 		dryWetMix = newDryWetMix;
 
@@ -82,51 +75,40 @@ struct Delay {
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
 		for (auto s = 0; s < numSamples; ++s) {
-			for (int ch = 0; ch < MAX_CHANNELS; ++ch) {
-				inputSamples[ch] = inputBuffer[ch][s];
-					
-				writePointers[ch] = writePointers[ch] % delayBufferSize;
-				auto currentDelaySize = static_cast<int>(filters[ch].process(targetDelaySizes[ch]));
+		
+			auto leftS = inputBuffer[0][s];
+			auto rightS = inputBuffer[1][s];
 
-				readPointers[ch] = wrapNegative(writePointers[ch] - currentDelaySize, delayBufferSize);
-				delayOutputs[ch] = ringBuffer[ch][readPointers[ch]];
+			auto delaySizeL = filters[0].process(targetDelaySizes[0]);
+			auto delaySizeR = filters[1].process(targetDelaySizes[1]);
 
-			}
+			auto leftDelayRead = ringBuffers[0].read(delaySizeL);
+			auto rightDelayRead = ringBuffers[1].read(delaySizeR);
 
-			float leftInputDelay;
-			float rightInputDelay;
+			auto leftDelayInput  = leftS  + leftDelayRead * feedbackGain;
+			auto rightDelayInput = rightS + rightDelayRead * feedbackGain;
 
 			if (pingPong) {
-				leftInputDelay = inputSamples[0] + inputSamples[1] + delayOutputs[1] * feedbackGain;
-				rightInputDelay = delayOutputs[0] * feedbackGain;
+				ringBuffers[0].write(rightDelayInput);
+				ringBuffers[1].write(leftDelayInput);
 			}
 			else {
-				leftInputDelay = inputSamples[0] + delayOutputs[0] * feedbackGain;
-				rightInputDelay = inputSamples[1] + delayOutputs[1] * feedbackGain;
-
+				ringBuffers[0].write(leftDelayInput);
+				ringBuffers[1].write(rightDelayInput);
 			}
 
-			ringBuffer[0][writePointers[0]] = leftInputDelay;
-			ringBuffer[1][writePointers[1]] = rightInputDelay;
-
-			for (int ch = 0; ch < MAX_CHANNELS; ++ch) {
-				inputBuffer[ch][s] = inputSamples[ch] * (1.0 - dryWetMix) + delayOutputs[ch] * dryWetMix;
-				writePointers[ch]++;
-			}
-
+			inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + leftDelayRead * dryWetMix;
+			inputBuffer[1][s] = rightS * (1.0 - dryWetMix) + rightDelayRead * dryWetMix;
 		}
 	}
 
 protected:
 	float sampleRate;
-
-	array<vector<float>, 2> ringBuffer;
-	array<float, 2> inputSamples;
-	array<float, 2> delayOutputs;
-	array<int, 2> writePointers;
-	array<int, 2> readPointers;
-	array<OnePoleFilter, 2> filters;
+	int nInputChannels;
 	int delayBufferSize;
+
+	array<RingBuffer<float>, 2> ringBuffers;
+	array<OnePoleFilter, 2> filters;
 
 	// Parameters
 	array<float, 2> targetDelaySizes;
