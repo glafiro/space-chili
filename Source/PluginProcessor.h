@@ -28,8 +28,10 @@ namespace ParameterID
     PARAMETER_ID(dryWet)
     PARAMETER_ID(delaySync)
     PARAMETER_ID(syncToHost)
+    PARAMETER_ID(syncToHost)
     PARAMETER_ID(syncedTimeSubdivisionL)
     PARAMETER_ID(syncedTimeSubdivisionR)
+    PARAMETER_ID(triplet)
     PARAMETER_ID(pingPong)
     PARAMETER_ID(leftRightRatio)
 
@@ -95,6 +97,7 @@ private:
     juce::AudioParameterBool* syncToHostParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
+    juce::AudioParameterBool* tripletParam;
     juce::AudioParameterBool* pingPongParam;
     juce::AudioParameterFloat* leftRightRatioParam;
 

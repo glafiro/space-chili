@@ -19,9 +19,10 @@ inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
     // parameter does not exist or wrong type
 }
 
-float BPM2Ms(int choice, float tempo=120.0f) {
-    float timeMultiplier = static_cast<float>(1 << choice);
-    return static_cast<float>((60000.0f / tempo) * (4.0f / timeMultiplier));
+float BPM2Ms(int choice, float tempo=120.0f, bool triplet=false) {
+    auto mult = 4.0f / static_cast<float>(1 << (choice));
+    if (triplet) mult *= 2.0f / 3.0f;    
+    return static_cast<float>((60000.0f / tempo) * mult);
 }
 
 //==============================================================================
@@ -47,6 +48,7 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::syncToHost, syncToHostParam);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
+    castParameter(apvts, ParameterID::triplet, tripletParam);
     castParameter(apvts, ParameterID::pingPong, pingPongParam);
     castParameter(apvts, ParameterID::leftRightRatio, leftRightRatioParam);
 }
@@ -191,9 +193,9 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float bpm) {
     float rightDelaySize;
 
     if (syncToHostParam->get()) {
-        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm);
+        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, tripletParam->get());
         if (linkedSizes) rightDelaySize = leftDelaySize;
-        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm);
+        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, tripletParam->get());
     }
 
     else {
@@ -299,11 +301,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         ));
 
     layout.add(std::make_unique <juce::AudioParameterBool>(
+        ParameterID::triplet,
+        "Triplet",
+        false
+    ));
+
+    layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::pingPong,
         "Ping Pong",
         false
         ));
-
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::leftRightRatio,
