@@ -48,10 +48,17 @@ public:
         writePointer &= mask;
     }
 
-    T read(int delaySize) {
+    T readInt(int delaySize) {
         readPointer = writePointer - 1 - delaySize;
         readPointer &= mask;
         return buffer[readPointer];
+    }
+
+    T read(float delaySize) {
+        T a = readInt(delaySize);
+        T b = readInt(delaySize + 1);
+        T f = delaySize - static_cast<int>(delaySize);
+        return lerp(a, b, f);
     }
 
     ~RingBuffer() {}

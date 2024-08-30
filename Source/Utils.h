@@ -25,3 +25,8 @@ inline int wrapNegative(int value, int maxValue) {
 inline unsigned int nearestPowerOfTwo(int n) {
 	return pow(2, ceil(log(n) / log(2)));
 }
+
+template<typename T>
+T lerp(T a, T b, T f) {
+	return a * (1.0 - f) + b * f;
+}
