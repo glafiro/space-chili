@@ -53,20 +53,14 @@ struct Delay {
 	}
 
 	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 
-				float newDryWetMix, bool isSynced, bool _pingPong) {
+				float newDryWetMix, bool _pingPong) {
 
 		pingPong = _pingPong;
+
+		if (pingPong) DBG("ping ponghe");
 	
 		targetDelaySizes[0] = lengthToSamples(sampleRate, leftDelayLength);
-
-		// For now, the left channel acts as the master. When completing the UI, the sliders will be linked and the
-		// master value is the last one being changed.
-		if (isSynced || pingPong) {
-			targetDelaySizes[1] = targetDelaySizes[0];
-		}
-		else {
-			targetDelaySizes[1] = lengthToSamples(sampleRate, rightDelayLength);
-		}
+		targetDelaySizes[1] = lengthToSamples(sampleRate, rightDelayLength);
 						
 		feedbackGain = newFeedbackGain;
 		dryWetMix = newDryWetMix;
@@ -85,16 +79,16 @@ struct Delay {
 			auto leftDelayRead = ringBuffers[0].read(delaySizeL);
 			auto rightDelayRead = ringBuffers[1].read(delaySizeR);
 
-			auto leftDelayInput  = leftS  + leftDelayRead * feedbackGain;
-			auto rightDelayInput = rightS + rightDelayRead * feedbackGain;
+			float leftDelayInput, rightDelayInput;
 
 			if (pingPong) {
-				ringBuffers[0].write(rightDelayInput);
-				ringBuffers[1].write(leftDelayInput);
+				ringBuffers[0].write(leftS + rightS + rightDelayRead * feedbackGain);
+				ringBuffers[1].write(leftDelayRead * feedbackGain);
+
 			}
 			else {
-				ringBuffers[0].write(leftDelayInput);
-				ringBuffers[1].write(rightDelayInput);
+				ringBuffers[0].write(leftS + leftDelayRead * feedbackGain);
+				ringBuffers[1].write(rightS + rightDelayRead * feedbackGain);
 			}
 
 			inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + leftDelayRead * dryWetMix;

@@ -48,6 +48,7 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
     castParameter(apvts, ParameterID::pingPong, pingPongParam);
+    castParameter(apvts, ParameterID::leftRightRatio, leftRightRatioParam);
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -184,27 +185,31 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 }
 
 void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float bpm) {
-    bool isSynced = delaySyncParam->get();
+    bool linkedSizes = delaySyncParam->get();
 
     float leftDelaySize;
     float rightDelaySize;
 
     if (syncToHostParam->get()) {
         leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm);
-        rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm);
+        if (linkedSizes) rightDelaySize = leftDelaySize;
+        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm);
     }
 
     else {
         leftDelaySize = leftDelaySizeParam->get();
-        rightDelaySize = rightDelaySizeParam->get();
+        if (linkedSizes) rightDelaySize = leftDelaySize;
+        else rightDelaySize = rightDelaySizeParam->get();
     }
+
+    rightDelaySize *= leftRightRatioParam->get();
 
     float feedbackGain = feedbackParam->get() * 0.01f * 0.98f; // Maximum is actually 98%
     float dryWetMix = dryWetParam->get() * 0.01f;
 
     bool pingPong = pingPongParam->get();
 
-    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, isSynced, pingPong);
+    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, pingPong);
 }
 
 //==============================================================================
@@ -298,6 +303,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         "Ping Pong",
         false
         ));
+
+
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::leftRightRatio,
+        "Ratio",
+        juce::NormalisableRange<float>{0.75f, 1.25f, 0.01f},
+        1.0f
+    ));
 
     return layout;
 }

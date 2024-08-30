@@ -31,6 +31,7 @@ namespace ParameterID
     PARAMETER_ID(syncedTimeSubdivisionL)
     PARAMETER_ID(syncedTimeSubdivisionR)
     PARAMETER_ID(pingPong)
+    PARAMETER_ID(leftRightRatio)
 
 
 
@@ -95,6 +96,7 @@ private:
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
     juce::AudioParameterBool* pingPongParam;
+    juce::AudioParameterFloat* leftRightRatioParam;
 
     std::atomic<bool> parametersChanged{ false };
     float currentBPM{120.0f};
