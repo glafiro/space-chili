@@ -53,6 +53,8 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::triplet, tripletParam);
     castParameter(apvts, ParameterID::pingPong, pingPongParam);
     castParameter(apvts, ParameterID::leftRightRatio, leftRightRatioParam);
+    castParameter(apvts, ParameterID::lowPassFreq, lowPassFreqParam);
+    castParameter(apvts, ParameterID::highPassFreq, highPassFreqParam);
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -215,7 +217,10 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
 
     bool pingPong = pingPongParam->get();
 
-    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, pingPong);
+    float lowPassFreq = lowPassFreqParam->get();
+    float highPassFreq = highPassFreqParam->get();
+
+    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, pingPong, lowPassFreq, highPassFreq);
 }
 
 //==============================================================================
@@ -336,6 +341,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         "Ratio",
         juce::NormalisableRange<float>{0.75f, 1.25f, 0.01f},
         1.0f
+    ));
+    
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::lowPassFreq,
+        "Lo",
+        juce::NormalisableRange<float>{20.0f, 20000.0f, 0.1f, 0.3f, false},
+        20000.0f
+    ));
+        
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::highPassFreq,
+        "Hi",
+        juce::NormalisableRange<float>{20.0f, 20000.0f, 0.1f, 0.3f, false},
+        20.0f
     ));
 
     return layout;

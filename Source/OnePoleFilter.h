@@ -14,13 +14,15 @@
 
 #define M_PI 3.14159265358979323846
 
+enum FilterType { LOWPASS, HIGHPASS};
+
 // https://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
 
 class OnePoleFilter
 {
 public:
-    OnePoleFilter() : a0(1.0f), b1(0.0f), z1(0.0f), sampleRate(44100.0f) {}
-    OnePoleFilter(float freq) : z1(0.0f) { setFrequency(freq); }
+    OnePoleFilter() : a0(1.0f), b1(0.0f), z1(0.0f) {}
+    OnePoleFilter(float freq) : z1(0.0f) { }
     ~OnePoleFilter() {};
 
     void setFrequency(double freq) {
@@ -28,12 +30,12 @@ public:
         a0 = 1.0f - b1;
     }
 
+
     float process(float in) {
         z1 = in * a0 + z1 * b1;
         return z1;
     }
 
 protected:
-    double a0, b1, z1;
-    double sampleRate;
+    double a0{ 1.0 }, b1{ 0.0 }, z1{0.0};
 };

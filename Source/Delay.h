@@ -16,6 +16,8 @@ using std::array;
 #define DEFAULT_FILTER_FREQUENCY	3.0f
 #define DEFAULT_DRY_WET_MIX			0.35f
 #define DEFAULT_PING_PONG			false
+#define DEFAULT_LO_FILTER_FREQ		20000.0f
+#define DEFAULT_HI_FILTER_FREQ		20.0f
 
 
 #define MAX_CHANNELS			2
@@ -30,6 +32,8 @@ struct Delay {
 		targetDelaySizes(),
 		delayBufferSize(0),
 		pingPong(false),
+		lowPassFilters(),
+		highPassFilters(),
 		feedbackGain(DEFAULT_FEEDBACK_GAIN),
 		sampleRate(DEFAULT_SAMPLE_RATE),
 		nInputChannels(DEFAULT_INPUT_CHANNELS),
@@ -48,15 +52,16 @@ struct Delay {
 			ringBuffers[channel] = RingBuffer<float>(delayBufferSize);
 						
 			targetDelaySizes[channel] = lengthInSamples;
-			filters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
+
+			paramFilters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
+			lowPassFilters[channel].setFrequency(DEFAULT_LO_FILTER_FREQ / sampleRate);
+			highPassFilters[channel].setFrequency(DEFAULT_HI_FILTER_FREQ / sampleRate);
 		}
 
-		DBG("buffer size:");
-		DBG(ringBuffers[0].getSize());
 	}
 
 	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 
-				float newDryWetMix, bool _pingPong) {
+				float newDryWetMix, bool _pingPong, float lowPassFreq, float highPassFreq) {
 
 		pingPong = _pingPong;
 
@@ -68,6 +73,11 @@ struct Delay {
 		feedbackGain = newFeedbackGain;
 		dryWetMix = newDryWetMix;
 
+		lowPassFilters[0].setFrequency(lowPassFreq / sampleRate);
+		lowPassFilters[1].setFrequency(lowPassFreq / sampleRate);
+		highPassFilters[0].setFrequency(highPassFreq / sampleRate);
+		highPassFilters[1].setFrequency(highPassFreq / sampleRate);
+
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
@@ -76,8 +86,8 @@ struct Delay {
 			auto leftS = inputBuffer[0][s];
 			auto rightS = inputBuffer[1][s];
 
-			auto delaySizeL = filters[0].process(targetDelaySizes[0]);
-			auto delaySizeR = filters[1].process(targetDelaySizes[1]);
+			auto delaySizeL = paramFilters[0].process(targetDelaySizes[0]);
+			auto delaySizeR = paramFilters[1].process(targetDelaySizes[1]);
 
 			auto leftDelayRead = ringBuffers[0].read(delaySizeL);
 			auto rightDelayRead = ringBuffers[1].read(delaySizeR);
@@ -94,6 +104,11 @@ struct Delay {
 				ringBuffers[1].write(rightS + rightDelayRead * feedbackGain);
 			}
 
+			leftDelayRead  = lowPassFilters[0].process(leftDelayRead);
+			rightDelayRead = lowPassFilters[1].process(rightDelayRead);
+			leftDelayRead  -= highPassFilters[0].process(leftDelayRead);
+			rightDelayRead -= highPassFilters[1].process(rightDelayRead);
+
 			inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + leftDelayRead * dryWetMix;
 			inputBuffer[1][s] = rightS * (1.0 - dryWetMix) + rightDelayRead * dryWetMix;
 		}
@@ -105,7 +120,9 @@ protected:
 	int delayBufferSize;
 
 	array<RingBuffer<float>, 2> ringBuffers;
-	array<OnePoleFilter, 2> filters;
+	array<OnePoleFilter, 2> paramFilters;
+	array<OnePoleFilter, 2> lowPassFilters;
+	array<OnePoleFilter, 2> highPassFilters;
 
 	// Parameters
 	array<float, 2> targetDelaySizes;

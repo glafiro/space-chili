@@ -35,6 +35,8 @@ namespace ParameterID
     PARAMETER_ID(triplet)
     PARAMETER_ID(pingPong)
     PARAMETER_ID(leftRightRatio)
+    PARAMETER_ID(lowPassFreq)
+    PARAMETER_ID(highPassFreq)
 
 
 
@@ -103,6 +105,8 @@ private:
     juce::AudioParameterBool* tripletParam;
     juce::AudioParameterBool* pingPongParam;
     juce::AudioParameterFloat* leftRightRatioParam;
+    juce::AudioParameterFloat* lowPassFreqParam;
+    juce::AudioParameterFloat* highPassFreqParam;
 
     std::atomic<bool> parametersChanged{ false };
     std::atomic<int> useHostBPM{ false };
