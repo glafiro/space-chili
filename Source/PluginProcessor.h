@@ -32,7 +32,7 @@ namespace ParameterID
     PARAMETER_ID(internalBPM)
     PARAMETER_ID(syncedTimeSubdivisionL)
     PARAMETER_ID(syncedTimeSubdivisionR)
-    PARAMETER_ID(triplet)
+    PARAMETER_ID(timeMode)
     PARAMETER_ID(pingPong)
     PARAMETER_ID(leftRightRatio)
     PARAMETER_ID(lowPassFreq)
@@ -102,7 +102,7 @@ private:
     juce::AudioParameterFloat* internalBPMParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
-    juce::AudioParameterBool* tripletParam;
+    juce::AudioParameterChoice* timeModeParam;
     juce::AudioParameterBool* pingPongParam;
     juce::AudioParameterFloat* leftRightRatioParam;
     juce::AudioParameterFloat* lowPassFreqParam;

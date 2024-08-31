@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+enum TimeMode {STRAIGHT, TRIPLETS, DOTTED};
+
 
 template<typename T>
 inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
@@ -19,9 +21,10 @@ inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
     // parameter does not exist or wrong type
 }
 
-float BPM2Ms(int choice, float tempo=120.0f, bool triplet=false) {
+float BPM2Ms(int choice, float tempo=120.0f, int timeMode=0) {
     auto mult = 4.0f / static_cast<float>(1 << (choice));
-    if (triplet) mult *= 2.0f / 3.0f;    
+    if (timeMode == TRIPLETS) mult *= (2.0f / 3.0f);   
+    if (timeMode == DOTTED) mult *= 1.5f;
     return static_cast<float>((60000.0f / tempo) * mult);
 }
 
@@ -50,7 +53,7 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::internalBPM, internalBPMParam);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
-    castParameter(apvts, ParameterID::triplet, tripletParam);
+    castParameter(apvts, ParameterID::timeMode, timeModeParam);
     castParameter(apvts, ParameterID::pingPong, pingPongParam);
     castParameter(apvts, ParameterID::leftRightRatio, leftRightRatioParam);
     castParameter(apvts, ParameterID::lowPassFreq, lowPassFreqParam);
@@ -200,9 +203,9 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
     float rightDelaySize;
 
     if (syncToBPMParam->get()) {
-        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, tripletParam->get());
+        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, timeModeParam->getIndex());
         if (linkedSizes) rightDelaySize = leftDelaySize;
-        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, tripletParam->get());
+        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParam->getIndex());
     }
 
     else {
@@ -327,9 +330,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         3
         ));
 
-    layout.add(std::make_unique <juce::AudioParameterBool>(
-        ParameterID::triplet,
-        "Triplet",
+    layout.add(std::make_unique <juce::AudioParameterChoice>(
+        ParameterID::timeMode,
+        "Time mode",
+        juce::StringArray{"Straight", "Triplet", "Dotted"},
         false
     ));
 
