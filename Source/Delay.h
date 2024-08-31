@@ -5,6 +5,7 @@
 #include "OnePoleFilter.h"
 #include "Utils.h"
 #include "RingBuffer.h"
+#include "EnvFollower.h"
 
 using std::vector;
 using std::array;
@@ -18,6 +19,7 @@ using std::array;
 #define DEFAULT_PING_PONG			false
 #define DEFAULT_LO_FILTER_FREQ		20000.0f
 #define DEFAULT_HI_FILTER_FREQ		20.0f
+#define DEFAULT_DUCK_TIME			20.0f
 
 
 #define MAX_CHANNELS			2
@@ -34,6 +36,8 @@ struct Delay {
 		pingPong(false),
 		lowPassFilters(),
 		highPassFilters(),
+		envFollowers(),
+		duckingAmt(0.0f),
 		feedbackGain(DEFAULT_FEEDBACK_GAIN),
 		sampleRate(DEFAULT_SAMPLE_RATE),
 		nInputChannels(DEFAULT_INPUT_CHANNELS),
@@ -56,17 +60,20 @@ struct Delay {
 			paramFilters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
 			lowPassFilters[channel].setFrequency(DEFAULT_LO_FILTER_FREQ / sampleRate);
 			highPassFilters[channel].setFrequency(DEFAULT_HI_FILTER_FREQ / sampleRate);
+
+			envFollowers[channel].setSampleRate(sampleRate);
+			envFollowers[channel].setAttack(DEFAULT_DUCK_TIME);
+			envFollowers[channel].setRelease(DEFAULT_DUCK_TIME);
 		}
 
 	}
 
 	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 
-				float newDryWetMix, bool _pingPong, float lowPassFreq, float highPassFreq) {
+				float newDryWetMix, bool _pingPong, float lowPassFreq, float highPassFreq,
+				float _duckingAmt) {
 
 		pingPong = _pingPong;
 
-		if (pingPong) DBG("ping ponghe");
-	
 		targetDelaySizes[0] = lengthToSamples(sampleRate, leftDelayLength);
 		targetDelaySizes[1] = lengthToSamples(sampleRate, rightDelayLength);
 						
@@ -78,6 +85,7 @@ struct Delay {
 		highPassFilters[0].setFrequency(highPassFreq / sampleRate);
 		highPassFilters[1].setFrequency(highPassFreq / sampleRate);
 
+		duckingAmt = _duckingAmt;
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
@@ -109,6 +117,13 @@ struct Delay {
 			leftDelayRead  -= highPassFilters[0].process(leftDelayRead);
 			rightDelayRead -= highPassFilters[1].process(rightDelayRead);
 
+			if (duckingAmt > 0.0f) {
+				auto leftDuckingGain =  envFollowers[0].process(leftS);
+				auto rightDuckingGain = envFollowers[1].process(rightS);
+				leftDelayRead  *= (1.0f - leftDuckingGain * duckingAmt);
+				rightDelayRead *= (1.0f - rightDuckingGain * duckingAmt);
+			}
+
 			inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + leftDelayRead * dryWetMix;
 			inputBuffer[1][s] = rightS * (1.0 - dryWetMix) + rightDelayRead * dryWetMix;
 		}
@@ -123,11 +138,13 @@ protected:
 	array<OnePoleFilter, 2> paramFilters;
 	array<OnePoleFilter, 2> lowPassFilters;
 	array<OnePoleFilter, 2> highPassFilters;
+	array<EnvFollower, 2> envFollowers;
 
 	// Parameters
 	array<float, 2> targetDelaySizes;
 	float feedbackGain;
 	float dryWetMix;
 	bool pingPong;
+	float duckingAmt;
 
 };

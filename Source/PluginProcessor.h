@@ -37,7 +37,7 @@ namespace ParameterID
     PARAMETER_ID(leftRightRatio)
     PARAMETER_ID(lowPassFreq)
     PARAMETER_ID(highPassFreq)
-
+    PARAMETER_ID(duckingAmount)
 
 
 #undef PARAMETER_ID
@@ -107,6 +107,7 @@ private:
     juce::AudioParameterFloat* leftRightRatioParam;
     juce::AudioParameterFloat* lowPassFreqParam;
     juce::AudioParameterFloat* highPassFreqParam;
+    juce::AudioParameterFloat* duckingAmountParam;
 
     std::atomic<bool> parametersChanged{ false };
     std::atomic<int> useHostBPM{ false };
