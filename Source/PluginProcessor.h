@@ -9,7 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "Delay.h"
+#include "StereoDelay.h"
 
 #define PLUGIN_VERSION 1    
 
@@ -38,6 +38,8 @@ namespace ParameterID
     PARAMETER_ID(lowPassFreq)
     PARAMETER_ID(highPassFreq)
     PARAMETER_ID(duckingAmount)
+    PARAMETER_ID(delayOn)
+    PARAMETER_ID(chorusOn)
 
 
 #undef PARAMETER_ID
@@ -108,6 +110,8 @@ private:
     juce::AudioParameterFloat* lowPassFreqParam;
     juce::AudioParameterFloat* highPassFreqParam;
     juce::AudioParameterFloat* duckingAmountParam;
+    juce::AudioParameterBool* delayOnParam;
+    juce::AudioParameterBool* chorusOnParam;
 
     std::atomic<bool> parametersChanged{ false };
     std::atomic<int> useHostBPM{ false };
@@ -122,6 +126,6 @@ private:
     void update(juce::AudioBuffer<float>& buffer, float bpm);
 
     // DSP
-    Delay delay;
+    StereoDelay delay;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayAudioProcessor)
 };

@@ -28,9 +28,10 @@ using std::array;
 #define LEFT	0
 #define RIGHT	1
 
-struct Delay {
+struct StereoDelay {
 
-	Delay() :
+	StereoDelay() :
+		isOn(true),
 		targetDelaySizes(),
 		delayBufferSize(0),
 		pingPong(false),
@@ -70,9 +71,10 @@ struct Delay {
 
 	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 
 				float newDryWetMix, bool _pingPong, float lowPassFreq, float highPassFreq,
-				float _duckingAmt) {
+				float _duckingAmt, bool _isOn) {
 
 		pingPong = _pingPong;
+		isOn = _isOn;
 
 		targetDelaySizes[0] = lengthToSamples(sampleRate, leftDelayLength);
 		targetDelaySizes[1] = lengthToSamples(sampleRate, rightDelayLength);
@@ -89,43 +91,45 @@ struct Delay {
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
-		for (auto s = 0; s < numSamples; ++s) {
+		if (isOn) {
+			for (auto s = 0; s < numSamples; ++s) {
 		
-			auto leftS = inputBuffer[0][s];
-			auto rightS = inputBuffer[1][s];
+				auto leftS = inputBuffer[0][s];
+				auto rightS = inputBuffer[1][s];
 
-			auto delaySizeL = paramFilters[0].process(targetDelaySizes[0]);
-			auto delaySizeR = paramFilters[1].process(targetDelaySizes[1]);
+				auto delaySizeL = paramFilters[0].process(targetDelaySizes[0]);
+				auto delaySizeR = paramFilters[1].process(targetDelaySizes[1]);
 
-			auto leftDelayRead = ringBuffers[0].read(delaySizeL);
-			auto rightDelayRead = ringBuffers[1].read(delaySizeR);
+				auto leftDelayRead = ringBuffers[0].read(delaySizeL);
+				auto rightDelayRead = ringBuffers[1].read(delaySizeR);
 
-			float leftDelayInput, rightDelayInput;
+				float leftDelayInput, rightDelayInput;
 
-			if (pingPong) {
-				ringBuffers[0].write(leftS + rightS + rightDelayRead * feedbackGain);
-				ringBuffers[1].write(leftDelayRead * feedbackGain);
+				if (pingPong) {
+					ringBuffers[0].write(leftS + rightS + rightDelayRead * feedbackGain);
+					ringBuffers[1].write(leftDelayRead * feedbackGain);
 
+				}
+				else {
+					ringBuffers[0].write(leftS + leftDelayRead * feedbackGain);
+					ringBuffers[1].write(rightS + rightDelayRead * feedbackGain);
+				}
+
+				leftDelayRead  = lowPassFilters[0].process(leftDelayRead);
+				rightDelayRead = lowPassFilters[1].process(rightDelayRead);
+				leftDelayRead  -= highPassFilters[0].process(leftDelayRead);
+				rightDelayRead -= highPassFilters[1].process(rightDelayRead);
+
+				if (duckingAmt > 0.0f) {
+					auto leftDuckingGain =  envFollowers[0].process(leftS);
+					auto rightDuckingGain = envFollowers[1].process(rightS);
+					leftDelayRead  *= (1.0f - leftDuckingGain * duckingAmt);
+					rightDelayRead *= (1.0f - rightDuckingGain * duckingAmt);
+				}
+
+				inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + leftDelayRead * dryWetMix;
+				inputBuffer[1][s] = rightS * (1.0 - dryWetMix) + rightDelayRead * dryWetMix;
 			}
-			else {
-				ringBuffers[0].write(leftS + leftDelayRead * feedbackGain);
-				ringBuffers[1].write(rightS + rightDelayRead * feedbackGain);
-			}
-
-			leftDelayRead  = lowPassFilters[0].process(leftDelayRead);
-			rightDelayRead = lowPassFilters[1].process(rightDelayRead);
-			leftDelayRead  -= highPassFilters[0].process(leftDelayRead);
-			rightDelayRead -= highPassFilters[1].process(rightDelayRead);
-
-			if (duckingAmt > 0.0f) {
-				auto leftDuckingGain =  envFollowers[0].process(leftS);
-				auto rightDuckingGain = envFollowers[1].process(rightS);
-				leftDelayRead  *= (1.0f - leftDuckingGain * duckingAmt);
-				rightDelayRead *= (1.0f - rightDuckingGain * duckingAmt);
-			}
-
-			inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + leftDelayRead * dryWetMix;
-			inputBuffer[1][s] = rightS * (1.0 - dryWetMix) + rightDelayRead * dryWetMix;
 		}
 	}
 
@@ -146,5 +150,6 @@ protected:
 	float dryWetMix;
 	bool pingPong;
 	float duckingAmt;
+	bool isOn;
 
 };
