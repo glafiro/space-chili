@@ -281,14 +281,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::leftDelaySize,
         "Left (ms)",
-        juce::NormalisableRange<float>{ 1.0f, 1000.0f },
+        juce::NormalisableRange<float>{ 1.0f, 1000.0f, 0.01f, 0.8f },
         DEFAULT_DELAY_LEN
         ));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::rightDelaySize,
         "Right (ms)",
-        juce::NormalisableRange<float>{ 1.0f, 1000.0f },
+        juce::NormalisableRange<float>{ 1.0f, 1000.0f, 0.01f, 0.8f },
         DEFAULT_DELAY_LEN
         ));
 
