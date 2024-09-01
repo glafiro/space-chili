@@ -12,6 +12,7 @@ class LFO
 public:
     float amplitude;
     float phase;
+    float phaseOffset;
     float inc;
     float sampleRate{44100.0f};
     float freq;
@@ -20,14 +21,14 @@ public:
     int sampleIndex{0};
     float sin0, sin1, dsin;
 
-    void reset(float sr) {
+    void reset(float sr, float offset) {
         sampleRate = sr;
         sampleIndex = 0;
-        
+        phaseOffset = offset;
     }
 
     float sine(float p) {
-        return std::sin(TWO_PI * sampleIndex * freq / sampleRate);
+        return std::sin(TWO_PI * sampleIndex * freq / sampleRate + phaseOffset);
     }
 
     float nextSample() {

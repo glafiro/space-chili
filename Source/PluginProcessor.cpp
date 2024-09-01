@@ -62,6 +62,8 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::duckingAmount, duckingAmountParam);
     castParameter(apvts, ParameterID::delayOn, delayOnParam);
     castParameter(apvts, ParameterID::chorusOn, chorusOnParam);
+    castParameter(apvts, ParameterID::chorusDepth, chorusDepthParam);
+    castParameter(apvts, ParameterID::chorusRate, chorusRateParam);
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -238,7 +240,10 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
 
     delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, pingPong, lowPassFreq, highPassFreq, duckingAmount, delayOnParam->get());
 
-    chorus.update(chorusOnParam->get());
+    float chorusDepth = chorusDepthParam->get() / 100.0f;
+    float chorusRate = chorusRateParam->get();
+
+    chorus.update(chorusOnParam->get(), chorusDepth, chorusRate);
 }
 
 //==============================================================================
@@ -381,8 +386,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         "Ducking",
         juce::NormalisableRange<float>{0.0f, 100.0f, 0.1f},
         0.0f
-    ));            
-    
+    ));               
+
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::delayOn,
         "Delay On",
@@ -393,6 +398,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         ParameterID::chorusOn,
         "Chorus On",
         true
+    ));
+
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::chorusDepth,
+        "Chorus Depth",
+        juce::NormalisableRange<float>{0.0f, 100.0f, 0.1f},
+        50.0f
+    ));
+    
+    layout.add(std::make_unique <juce::AudioParameterFloat>(
+        ParameterID::chorusRate,
+        "Chorus Rate",
+        juce::NormalisableRange<float>{0.2f, 1.2f, 0.1f},
+        0.25f
     ));
 
     return layout;

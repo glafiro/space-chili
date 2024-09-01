@@ -13,7 +13,7 @@ using std::array;
 // Default values
 #define MAX_DELAY_LENGTH			2500.0f
 #define DEFAULT_SAMPLE_RATE			44100
-#define DEFAULT_FEEDBACK_GAIN		0.1f
+#define DEFAULT_FEEDBACK_GAIN		0.0f
 #define DEFAULT_FILTER_FREQUENCY	3.0f
 #define DEFAULT_DRY_WET_MIX			0.5f
 

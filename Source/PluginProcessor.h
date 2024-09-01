@@ -41,6 +41,8 @@ namespace ParameterID
     PARAMETER_ID(duckingAmount)
     PARAMETER_ID(delayOn)
     PARAMETER_ID(chorusOn)
+    PARAMETER_ID(chorusDepth)
+    PARAMETER_ID(chorusRate)
 
 
 #undef PARAMETER_ID
@@ -113,6 +115,8 @@ private:
     juce::AudioParameterFloat* duckingAmountParam;
     juce::AudioParameterBool* delayOnParam;
     juce::AudioParameterBool* chorusOnParam;
+    juce::AudioParameterFloat* chorusDepthParam;
+    juce::AudioParameterFloat* chorusRateParam;
 
     std::atomic<bool> parametersChanged{ false };
     std::atomic<int> useHostBPM{ false };

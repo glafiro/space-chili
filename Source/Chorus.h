@@ -18,11 +18,14 @@ using std::array;
 #define MAX_CHANNELS	2
 #define MAX_DELAYS		2
 
-#define L_FREQ	0.5f
-#define R_FREQ  1.0f;
+#define L_PHASE_OFFSET	1.6f
+#define R_PHASE_OFFSET	0.0f
+#define LFO_FREQ		1.0
 
-#define DEFAULT_MIN		10.0f
-#define DEFAULT_DEPTH	30.0f
+#define DEFAULT_L_MIN	10.0f
+#define DEFAULT_R_MIN	10.0f
+#define DEFAULT_L_DEPTH	20.0f
+#define DEFAULT_R_DEPTH	20.0f
 
 struct Chorus {
 
@@ -30,49 +33,74 @@ struct Chorus {
 		isOn(true),
 		delays(),
 		lfos(),
+		lfoRate(1.0f),
+		modDepth(0.5f),
 		delayValues(),
-		minDelay(DEFAULT_MIN),
-		depth(DEFAULT_DEPTH),
+		minDelays(),
+		depths(),
 		sampleRate(DEFAULT_SAMPLE_RATE)
 	{}
 
 	void prepare(float _nInputChannels, float _sampleRate, int blockSize, float lengthInMs = DEFAULT_DL_LENGTH) {
 		sampleRate = _sampleRate;
 
+		// Initialize LFO and delay array values
 		for (int i = 0; i < MAX_DELAYS; ++i) {
-			lfos[i].reset(sampleRate);
 			delayValues[i].resize(blockSize, 0.0f);
 		}
-		lfos[0].setFrequency(L_FREQ);
-		lfos[1].setFrequency(L_FREQ);
+		lfos[0].reset(sampleRate, L_PHASE_OFFSET);
+		lfos[0].reset(sampleRate, R_PHASE_OFFSET);
 
+		// Set chorus parameters
+		minDelays[0] = DEFAULT_L_MIN;
+		minDelays[1] = DEFAULT_R_MIN;
+		depths[0] = DEFAULT_L_DEPTH;
+		depths[1] = DEFAULT_R_DEPTH;
+		lfos[0].setFrequency(LFO_FREQ);
+		lfos[1].setFrequency(LFO_FREQ);
+
+		// Initialize delays
 		delays[0].prepare(_nInputChannels, _sampleRate, blockSize, 100.f);
 		delays[1].prepare(_nInputChannels, _sampleRate, blockSize, 150.f);
 	}
 
-	void update(bool _isOn) {
+	void update(bool _isOn, float _depth, float _lfoRate) {
 		isOn = _isOn;
+
+		modDepth = _depth;
+		lfoRate = _lfoRate;
+
+		lfos[0].setFrequency(lfoRate);
+		lfos[1].setFrequency(lfoRate);
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
-		auto maxDelay = minDelay + depth;
-		float half = (maxDelay - minDelay) / 2;
-		float mid = half + minDelay;
 		
+		float leftDelaySize{ 0.0f }, rightDelaySize{ 0.0f };
+
 		for (int s = 0; s < numSamples; ++s) {
+			auto maxDelayL = minDelays[0] + DEFAULT_L_DEPTH;
+			auto maxDelayR = minDelays[1] + DEFAULT_R_DEPTH;
+			
+			float halfL = (maxDelayL - minDelays[0]) / 2.0f;
+			float halfR = (maxDelayR - minDelays[1]) / 2.0f;
+			
+			float midL = halfL + minDelays[0];
+			float midR = halfR + minDelays[1];
+			
 			auto lfoOutputL = lfos[0].nextSample();
 			auto lfoOutputR = lfos[1].nextSample();
 		
-			auto leftDelayLength = lfoOutputL  * 0.9f * half + mid;
-			auto rightDelayLength = lfoOutputR * 0.9f * half + mid;
+			auto leftDelayLength = lfoOutputL  * modDepth * halfL + midL;
+			auto rightDelayLength = lfoOutputR * modDepth * halfR + midR;
 
-			auto leftDelaySize = lengthToSamples(sampleRate, leftDelayLength);
-			auto rightDelaySize = lengthToSamples(sampleRate, rightDelayLength);
+			leftDelaySize = lengthToSamples(sampleRate, leftDelayLength);
+			rightDelaySize = lengthToSamples(sampleRate, rightDelayLength);
 			delayValues[0][s] = leftDelaySize;
 			delayValues[1][s] = rightDelaySize;
 		}
 		
-		if (isOn) {
+		if (isOn && leftDelaySize > 0.0f && rightDelaySize > 0.0f) {
 			delays[0].processBlock(
 				inputBuffer,
 				numChannels,
@@ -99,6 +127,10 @@ protected:
 
 	array<SimpleDelay, 2> delays;
 	array<vector<float>, 2> delayValues;
+	array<float, 2> minDelays;
+	array<float, 2> depths;
+	float modDepth;
+	float lfoRate;
 	array<LFO, 2> lfos;
 
 };
