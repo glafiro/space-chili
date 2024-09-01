@@ -30,3 +30,10 @@ template<typename T>
 T lerp(T a, T b, T f) {
 	return a * (1.0 - f) + b * f;
 }
+
+template<typename T>
+T clamp(T val, T minVal, T maxVal) {
+	val = fmin(val, maxVal);
+	val = fmax(val, minVal);
+	return val;
+}

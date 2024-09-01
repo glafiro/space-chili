@@ -39,7 +39,8 @@ DelayAudioProcessor::DelayAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        ),
-    delay()
+    delay(),
+    chorus()
 #endif
 {
     apvts.state.addListener(this);
@@ -134,6 +135,7 @@ void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     int nChannels = getTotalNumInputChannels();
     delay.prepare(nChannels, static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
+    chorus.prepare(nChannels, static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
 }
 
 void DelayAudioProcessor::releaseResources()
@@ -195,6 +197,12 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         buffer.getNumChannels(),
         buffer.getNumSamples()
     );
+    
+    chorus.processBlock(
+        buffer.getArrayOfWritePointers(),
+        buffer.getNumChannels(),
+        buffer.getNumSamples()
+    );
 }
 
 void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM) {
@@ -229,6 +237,8 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
     float duckingAmount = duckingAmountParam->get() / 100.0f;
 
     delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, pingPong, lowPassFreq, highPassFreq, duckingAmount, delayOnParam->get());
+
+    chorus.update(chorusOnParam->get());
 }
 
 //==============================================================================
@@ -376,7 +386,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::delayOn,
         "Delay On",
-        true
+        false
     ));
     
     layout.add(std::make_unique <juce::AudioParameterBool>(

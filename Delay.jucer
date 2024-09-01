@@ -5,6 +5,7 @@
               pluginManufacturerCode="GLAF" pluginCode="DLAY" cppLanguageStandard="20">
   <MAINGROUP id="oEGvMH" name="Delay">
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
+      <FILE id="f5yH3m" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
       <FILE id="lsfwTn" name="SimpleDelay.h" compile="0" resource="0" file="Source/SimpleDelay.h"/>
       <FILE id="pwHMMK" name="Chorus.h" compile="0" resource="0" file="Source/Chorus.h"/>
       <FILE id="uMtObE" name="EnvFollower.h" compile="0" resource="0" file="Source/EnvFollower.h"/>

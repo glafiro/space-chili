@@ -31,7 +31,7 @@ using std::array;
 struct StereoDelay {
 
 	StereoDelay() :
-		isOn(true),
+		isOn(false),
 		targetDelaySizes(),
 		delayBufferSize(0),
 		pingPong(false),

@@ -13,14 +13,13 @@ using std::array;
 // Default values
 #define MAX_DELAY_LENGTH			2500.0f
 #define DEFAULT_SAMPLE_RATE			44100
-#define DEFAULT_FEEDBACK_GAIN		0.4f
+#define DEFAULT_FEEDBACK_GAIN		0.1f
 #define DEFAULT_FILTER_FREQUENCY	3.0f
-#define DEFAULT_DRY_WET_MIX			0.35f
+#define DEFAULT_DRY_WET_MIX			0.5f
 
 struct SimpleDelay {
 
 	SimpleDelay() :
-		targetDelaySize(0.0f),
 		delayBufferSize(0),
 		feedbackGain(DEFAULT_FEEDBACK_GAIN),
 		sampleRate(DEFAULT_SAMPLE_RATE),
@@ -36,28 +35,16 @@ struct SimpleDelay {
 
 		ringBuffer = RingBuffer<float>(delayBufferSize);
 
-		targetDelaySize = lengthInSamples;
-
 		paramFilter.setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
 	}
 
-	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain,
-		float newDryWetMix, bool _pingPong, float lowPassFreq, float highPassFreq,
-		float _duckingAmt) {
-
-		targetDelaySize = lengthToSamples(sampleRate, leftDelayLength);
-
-		feedbackGain = newFeedbackGain;
-		dryWetMix = newDryWetMix;
-
-	}
-
-	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
+	void processBlock(float* const* inputBuffer, int numChannels, int numSamples, int activeChannel, 
+		vector<float> delayValues) {
 		for (auto s = 0; s < numSamples; ++s) {
 
-			auto sample = inputBuffer[0][s];
+			auto sample = inputBuffer[activeChannel][s];
 
-			auto delaySize = paramFilter.process(targetDelaySize);
+			float delaySize = delayValues[s];
 
 			auto delayRead = ringBuffer.read(delaySize);
 
@@ -65,7 +52,7 @@ struct SimpleDelay {
 
 			ringBuffer.write(sample + delayRead * feedbackGain);
 
-			inputBuffer[0][s] = sample * (1.0 - dryWetMix) + delayRead * dryWetMix;
+			inputBuffer[activeChannel][s] = sample * (1.0 - dryWetMix) + delayRead * dryWetMix;
 		}
 	}
 
@@ -77,7 +64,6 @@ protected:
 	OnePoleFilter paramFilter;
 
 	// Parameters
-	float targetDelaySize;
 	float feedbackGain;
 	float dryWetMix;
 };

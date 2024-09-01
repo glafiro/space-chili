@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "StereoDelay.h"
+#include "Chorus.h"
 
 #define PLUGIN_VERSION 1    
 
@@ -127,5 +128,6 @@ private:
 
     // DSP
     StereoDelay delay;
+    Chorus chorus;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayAudioProcessor)
 };
