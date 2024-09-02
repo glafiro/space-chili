@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="BLWazi" name="Delay" projectType="audioplug" useAppConfig="0"
+<JUCERPROJECT id="BLWazi" name="Space Chili" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Glafo's"
-              pluginManufacturerCode="GLAF" pluginCode="DLAY" cppLanguageStandard="20">
-  <MAINGROUP id="oEGvMH" name="Delay">
+              pluginManufacturerCode="GLAF" pluginCode="CILI" cppLanguageStandard="20"
+              pluginFormats="buildAU,buildVST3">
+  <MAINGROUP id="oEGvMH" name="Space Chili">
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
       <FILE id="f5yH3m" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
       <FILE id="lsfwTn" name="SimpleDelay.h" compile="0" resource="0" file="Source/SimpleDelay.h"/>
