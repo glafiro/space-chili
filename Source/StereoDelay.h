@@ -6,6 +6,7 @@
 #include "Utils.h"
 #include "RingBuffer.h"
 #include "EnvFollower.h"
+#include "DSPParameters.h"
 
 using std::vector;
 using std::array;
@@ -13,14 +14,8 @@ using std::array;
 // Default values
 #define MAX_DELAY_LENGTH			2500.0f
 #define DEFAULT_SAMPLE_RATE			44100
-#define DEFAULT_FEEDBACK_GAIN		0.4f
 #define DEFAULT_FILTER_FREQUENCY	3.0f
-#define DEFAULT_DRY_WET_MIX			0.35f
-#define DEFAULT_PING_PONG			false
-#define DEFAULT_LO_FILTER_FREQ		20000.0f
-#define DEFAULT_HI_FILTER_FREQ		20.0f
 #define DEFAULT_DUCK_TIME			20.0f
-
 
 #define MAX_CHANNELS			2
 #define DEFAULT_INPUT_CHANNELS	2	
@@ -31,7 +26,7 @@ using std::array;
 struct StereoDelay {
 
 	StereoDelay() :
-		isOn(false),
+		isOn(true),
 		targetDelaySizes(),
 		delayBufferSize(0),
 		pingPong(false),
@@ -39,18 +34,18 @@ struct StereoDelay {
 		highPassFilters(),
 		envFollowers(),
 		duckingAmt(0.0f),
-		feedbackGain(DEFAULT_FEEDBACK_GAIN),
+		feedbackGain(0.0),
+		dryWetMix(0.0),
 		sampleRate(DEFAULT_SAMPLE_RATE),
-		nInputChannels(DEFAULT_INPUT_CHANNELS),
-		dryWetMix(DEFAULT_DRY_WET_MIX)
+		nInputChannels(DEFAULT_INPUT_CHANNELS)
 	{}
 
-	void prepare(float _nInputChannels, float _sampleRate, int blockSize, float lengthInMs) {
+	void prepare(DSPParameters<float>& params) {
 
-		sampleRate = _sampleRate;
-		nInputChannels = _nInputChannels;
+		sampleRate = params["sampleRate"];
+		nInputChannels = params["nChannels"];
 
-		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, lengthInMs)));
+		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, params["delayLength"])));
 		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
 
 		for (int channel = 0; channel < MAX_CHANNELS; ++channel) {
@@ -59,35 +54,39 @@ struct StereoDelay {
 			targetDelaySizes[channel] = lengthInSamples;
 
 			paramFilters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
-			lowPassFilters[channel].setFrequency(DEFAULT_LO_FILTER_FREQ / sampleRate);
-			highPassFilters[channel].setFrequency(DEFAULT_HI_FILTER_FREQ / sampleRate);
+			lowPassFilters[channel].setFrequency(params["lowPassFreq"] / sampleRate);
+			highPassFilters[channel].setFrequency(params["highPassFreq"] / sampleRate);
 
 			envFollowers[channel].setSampleRate(sampleRate);
 			envFollowers[channel].setAttack(DEFAULT_DUCK_TIME);
 			envFollowers[channel].setRelease(DEFAULT_DUCK_TIME);
 		}
 
+		isOn = params["isOn"] == 1.0f;
+		pingPong = params["pingPong"] == 1.0f;
+		feedbackGain = params["feedback"];
+		dryWetMix = params["mix"];
+
 	}
 
-	void update(float leftDelayLength, float rightDelayLength, float newFeedbackGain, 
-				float newDryWetMix, bool _pingPong, float lowPassFreq, float highPassFreq,
-				float _duckingAmt, bool _isOn) {
+	void update(DSPParameters<float>& params) {
 
-		pingPong = _pingPong;
-		isOn = _isOn;
+		pingPong = params["pingPong"] == 1.0;
+		isOn = params["isOn"] == 1.0;
 
-		targetDelaySizes[0] = lengthToSamples(sampleRate, leftDelayLength);
-		targetDelaySizes[1] = lengthToSamples(sampleRate, rightDelayLength);
+		targetDelaySizes[0] = lengthToSamples(sampleRate, params["leftDelayLength"]);
+		targetDelaySizes[1] = lengthToSamples(sampleRate, params["rightDelayLength"]);
 						
-		feedbackGain = newFeedbackGain;
-		dryWetMix = newDryWetMix;
+		feedbackGain = params["feedback"];
+		dryWetMix = params["mix"];
 
-		lowPassFilters[0].setFrequency(lowPassFreq / sampleRate);
-		lowPassFilters[1].setFrequency(lowPassFreq / sampleRate);
-		highPassFilters[0].setFrequency(highPassFreq / sampleRate);
-		highPassFilters[1].setFrequency(highPassFreq / sampleRate);
+		for (int i = 0; i < 2; ++i) {
+			lowPassFilters[i].setFrequency(params["lowPassFreq"] / sampleRate);
+			highPassFilters[i].setFrequency(params["highPassFreq"] / sampleRate);
 
-		duckingAmt = _duckingAmt;
+		}
+
+		duckingAmt = params["ducking"];
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {

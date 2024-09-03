@@ -11,13 +11,33 @@
 #include <JuceHeader.h>
 #include "StereoDelay.h"
 #include "Chorus.h"
+#include "DSPParameters.h"
 
 #define PLUGIN_VERSION 1    
 
-#define DEFAULT_DELAY_LEN       250.0
+enum TempoSource {INTERNAL, HOST};
+enum TimeMode {STRAIGHT, TRIPLETS, DOTTED};
+
+#define DEFAULT_DELAY_LEN       250.0f
 #define DEFAULT_FEEDBACK_GAIN   35.0f
-#define DEFAULT_DRY_WET         35.0f
+#define DEFAULT_MIX             35.0f
+#define DEFAULT_LINK            true
+#define DEFAULT_SYNC            false
 #define DEFAULT_BPM             120.0f
+#define DEFAULT_CLOCK_SRC       TempoSource::HOST
+#define DEFAULT_INTERNAL_BPM    120.0f
+#define DEFAULT_SUBDIVISION     3 // 1/8
+#define DEFAULT_TIME_MODE       TimeMode::STRAIGHT
+#define DEFAULT_IS_PINGPONG     0.0f
+#define DEFAULT_LR_RATIO        1.0f
+#define DEFAULT_LOW_PASS        20000.0f
+#define DEFAULT_HIGH_PASS       20.0f
+#define DEFAULT_DUCKING         0.0f
+#define DEFAULT_DELAY_ON        true
+
+#define DEFAULT_CHORUS_ON       false
+#define DEFAULT_CHORUS_DEPTH    50.0f
+#define DEFAULT_CHORUS_RATE     0.25f
 
 namespace ParameterID
 {
@@ -133,5 +153,7 @@ private:
     // DSP
     StereoDelay delay;
     Chorus chorus;
+    DSPParameters<float> delayParameters;
+    DSPParameters<float> chorusParameters;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayAudioProcessor)
 };

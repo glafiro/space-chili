@@ -30,7 +30,7 @@ using std::array;
 struct Chorus {
 
 	Chorus() :
-		isOn(true),
+		isOn(false),
 		delays(),
 		lfos(),
 		lfoRate(1.0f),
@@ -41,12 +41,14 @@ struct Chorus {
 		sampleRate(DEFAULT_SAMPLE_RATE)
 	{}
 
-	void prepare(float _nInputChannels, float _sampleRate, int blockSize, float lengthInMs = DEFAULT_DL_LENGTH) {
-		sampleRate = _sampleRate;
+	void prepare(DSPParameters<float>& params, float lengthInMs = DEFAULT_DL_LENGTH) {
+		auto sampleRate = params["sampleRate"];
+		auto blockSize = params["blockSize"];
+		auto nInputChannels = params["nChannels"];
 
 		// Initialize LFO and delay array values
 		for (int i = 0; i < MAX_DELAYS; ++i) {
-			delayValues[i].resize(blockSize, 0.0f);
+			delayValues[i].resize(params["blockSize"], 0.0f);
 		}
 		lfos[0].reset(sampleRate, L_PHASE_OFFSET);
 		lfos[0].reset(sampleRate, R_PHASE_OFFSET);
@@ -56,19 +58,19 @@ struct Chorus {
 		minDelays[1] = DEFAULT_R_MIN;
 		depths[0] = DEFAULT_L_DEPTH;
 		depths[1] = DEFAULT_R_DEPTH;
-		lfos[0].setFrequency(LFO_FREQ);
-		lfos[1].setFrequency(LFO_FREQ);
+		lfos[0].setFrequency(params["ChorusRate"]);
+		lfos[1].setFrequency(params["ChorusRate"]);
 
 		// Initialize delays
-		delays[0].prepare(_nInputChannels, _sampleRate, blockSize, 100.f);
-		delays[1].prepare(_nInputChannels, _sampleRate, blockSize, 150.f);
+		delays[0].prepare(nInputChannels, sampleRate, blockSize, 100.f);
+		delays[1].prepare(nInputChannels, sampleRate, blockSize, 150.f);
 	}
 
-	void update(bool _isOn, float _depth, float _lfoRate) {
-		isOn = _isOn;
+	void update(DSPParameters<float>& params) {
+		isOn = params["isOn"];
 
-		modDepth = _depth;
-		lfoRate = _lfoRate;
+		modDepth = params["chorusDepth"];
+		lfoRate = params["chorusRate"];
 
 		lfos[0].setFrequency(lfoRate);
 		lfos[1].setFrequency(lfoRate);

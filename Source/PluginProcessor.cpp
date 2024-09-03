@@ -9,9 +9,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-enum TimeMode {STRAIGHT, TRIPLETS, DOTTED};
-
-
 template<typename T>
 inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
     const juce::ParameterID& id, T& destination)
@@ -136,8 +133,30 @@ void DelayAudioProcessor::changeProgramName (int index, const juce::String& newN
 void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     int nChannels = getTotalNumInputChannels();
-    delay.prepare(nChannels, static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
-    chorus.prepare(nChannels, static_cast<float>(sampleRate), samplesPerBlock, static_cast<float>(DEFAULT_DELAY_LEN));
+    
+    delayParameters.set("sampleRate", sampleRate);
+    delayParameters.set("blockSize", samplesPerBlock);
+    delayParameters.set("nChannels", nChannels);
+    delayParameters.set("delayLength", DEFAULT_DELAY_LEN);
+    delayParameters.set("feedback", DEFAULT_FEEDBACK_GAIN * 0.01f);
+    delayParameters.set("mix", DEFAULT_DRY_WET * 0.01f);
+    delayParameters.set("pingPong", static_cast<float>(DEFAULT_IS_PINGPONG));
+    delayParameters.set("lowPassFreq", DEFAULT_LOW_PASS);
+    delayParameters.set("highPassFreq", DEFAULT_HIGH_PASS);
+    delayParameters.set("ducking", DEFAULT_DUCKING);
+    delayParameters.set("isOn", static_cast<float>(DEFAULT_DELAY_ON));
+
+    delay.prepare(delayParameters);
+
+    chorusParameters.set("sampleRate", sampleRate);
+    chorusParameters.set("blockSize", samplesPerBlock);
+    chorusParameters.set("nChannels", nChannels);
+    chorusParameters.set("chorusRate", DEFAULT_CHORUS_RATE);
+    chorusParameters.set("chorusDepth", DEFAULT_CHORUS_DEPTH * 0.01f);
+    chorusParameters.set("isOn", DEFAULT_CHORUS_ON);
+
+
+    chorus.prepare(chorusParameters);
 }
 
 void DelayAudioProcessor::releaseResources()
@@ -228,22 +247,23 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
 
     rightDelaySize *= leftRightRatioParam->get();
 
-    float feedbackGain = feedbackParam->get() * 0.01f * 0.98f; // Maximum is actually 98%
-    float dryWetMix = dryWetParam->get() * 0.01f;
+    delayParameters.set("leftDelayLength",  leftDelaySize);
+    delayParameters.set("rightDelayLength", rightDelaySize);
+    delayParameters.set("feedback", feedbackParam->get() * 0.01f);
+    delayParameters.set("mix", dryWetParam->get() * 0.01f);
+    delayParameters.set("pingPong", static_cast<float>(pingPongParam->get()));
+    delayParameters.set("lowPassFreq", lowPassFreqParam->get());
+    delayParameters.set("highPassFreq", highPassFreqParam->get());
+    delayParameters.set("ducking", duckingAmountParam->get() * 0.01f);
+    delayParameters.set("isOn", static_cast<float>(delayOnParam->get()));
 
-    bool pingPong = pingPongParam->get();
+    delay.update(delayParameters);
 
-    float lowPassFreq = lowPassFreqParam->get();
-    float highPassFreq = highPassFreqParam->get();
+    chorusParameters.set("chorusDepth", chorusDepthParam->get() * 0.01f);
+    chorusParameters.set("chorusRate", chorusRateParam->get());
+    chorusParameters.set("isOn", chorusOnParam->get());
 
-    float duckingAmount = duckingAmountParam->get() / 100.0f;
-
-    delay.update(leftDelaySize, rightDelaySize, feedbackGain, dryWetMix, pingPong, lowPassFreq, highPassFreq, duckingAmount, delayOnParam->get());
-
-    float chorusDepth = chorusDepthParam->get() / 100.0f;
-    float chorusRate = chorusRateParam->get();
-
-    chorus.update(chorusOnParam->get(), chorusDepth, chorusRate);
+    chorus.update(chorusParameters);
 }
 
 //==============================================================================
@@ -308,21 +328,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::delaySync,
-        "Sync",
-        false
+        "Link",
+        DEFAULT_LINK
         ));    
     
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::syncToBPM,
         "Sync to BPM",
-        false
+        DEFAULT_SYNC
         ));    
 
     layout.add(std::make_unique <juce::AudioParameterChoice>(
         ParameterID::internalOrHost,
         "Clock source",
         juce::StringArray{ "Internal", "Host"},
-        1
+        DEFAULT_CLOCK_SRC
     ));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
@@ -337,81 +357,82 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         ParameterID::syncedTimeSubdivisionL,
         "Time",
         juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
-        3
+        DEFAULT_SUBDIVISION
         ));
     
     layout.add(std::make_unique <juce::AudioParameterChoice>(
         ParameterID::syncedTimeSubdivisionR,
         "Time",
         juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
-        3
+        DEFAULT_SUBDIVISION
         ));
 
     layout.add(std::make_unique <juce::AudioParameterChoice>(
         ParameterID::timeMode,
         "Time mode",
         juce::StringArray{"Straight", "Triplet", "Dotted"},
-        false
+        DEFAULT_TIME_MODE
     ));
 
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::pingPong,
         "Ping Pong",
-        false
+        DEFAULT_IS_PINGPONG
         ));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::leftRightRatio,
         "Ratio",
         juce::NormalisableRange<float>{0.75f, 1.25f, 0.01f},
-        1.0f
+        DEFAULT_LR_RATIO
     ));
     
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::lowPassFreq,
         "Lo",
         juce::NormalisableRange<float>{20.0f, 20000.0f, 0.1f, 0.3f, false},
-        20000.0f
+        DEFAULT_LOW_PASS
     ));
         
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::highPassFreq,
         "Hi",
         juce::NormalisableRange<float>{20.0f, 20000.0f, 0.1f, 0.3f, false},
-        20.0f
+        DEFAULT_HIGH_PASS
     ));
             
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::duckingAmount,
         "Ducking",
         juce::NormalisableRange<float>{0.0f, 100.0f, 0.1f},
-        0.0f
+        DEFAULT_DUCKING
     ));               
 
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::delayOn,
         "Delay On",
-        false
+        DEFAULT_DELAY_ON
+
     ));
     
     layout.add(std::make_unique <juce::AudioParameterBool>(
         ParameterID::chorusOn,
         "Chorus On",
-        true
+        DEFAULT_CHORUS_ON
     ));
 
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::chorusDepth,
         "Chorus Depth",
         juce::NormalisableRange<float>{0.0f, 100.0f, 0.1f},
-        50.0f
+        DEFAULT_CHORUS_DEPTH
     ));
     
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::chorusRate,
         "Chorus Rate",
         juce::NormalisableRange<float>{0.2f, 1.2f, 0.1f},
-        0.25f
+        DEFAULT_CHORUS_RATE
     ));
 
     return layout;
