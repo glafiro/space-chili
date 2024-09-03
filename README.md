@@ -1,6 +1,6 @@
 # Space Chili
 
-Space Chili is a completely free and open-source delay and chorus plug-in, available in VST3, AU, and CLAP formats. Here are its key features:
+Space Chili is a completely free and open-source delay and chorus plug-in, available in VST3, AU, and LV2 formats. Here are its key features:
 
 - Two fully independent delay lines for left and right channels.
 - Adjustable delay times ranging from 1 ms to 2.5 s.
