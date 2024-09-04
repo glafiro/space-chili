@@ -13,6 +13,7 @@
 #include <cmath>
 
 #define M_PI 3.14159265358979323846
+#define DEFAULT_SR  44100.0f
 
 enum FilterType { LOWPASS, HIGHPASS};
 
@@ -25,8 +26,12 @@ public:
     OnePoleFilter(float freq) : z1(0.0f) { }
     ~OnePoleFilter() {};
 
-    void setFrequency(double freq) {
-        b1 = exp(-2.0f * M_PI * freq);
+    void setSampleRate(float sr) {
+        sampleRate = sr;
+    }
+
+    void setFrequency(float freq) {
+        b1 = exp(-2.0f * M_PI * (freq / sampleRate));
         a0 = 1.0f - b1;
     }
 
@@ -37,5 +42,6 @@ public:
     }
 
 protected:
-    double a0{ 1.0 }, b1{ 0.0 }, z1{0.0};
+    float a0{ 1.0 }, b1{ 0.0 }, z1{0.0};
+    float sampleRate{DEFAULT_SR};
 };

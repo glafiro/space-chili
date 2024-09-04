@@ -7,6 +7,7 @@
 #include "RingBuffer.h"
 #include "EnvFollower.h"
 #include "DSPParameters.h"
+#include "FilteredParameter.h"
 
 using std::vector;
 using std::array;
@@ -27,7 +28,6 @@ struct StereoDelay {
 
 	StereoDelay() :
 		isOn(true),
-		targetDelaySizes(),
 		delayBufferSize(0),
 		pingPong(false),
 		lowPassFilters(),
@@ -48,14 +48,16 @@ struct StereoDelay {
 		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, params["delayLength"])));
 		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
 
+		delaySizeL.prepare(sampleRate, lengthInSamples);
+		delaySizeR.prepare(sampleRate, lengthInSamples);
+
 		for (int channel = 0; channel < MAX_CHANNELS; ++channel) {
 			ringBuffers[channel] = RingBuffer<float>(delayBufferSize);
-						
-			targetDelaySizes[channel] = lengthInSamples;
-
-			paramFilters[channel].setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
-			lowPassFilters[channel].setFrequency(params["lowPassFreq"] / sampleRate);
-			highPassFilters[channel].setFrequency(params["highPassFreq"] / sampleRate);
+			
+			lowPassFilters[channel].setSampleRate(sampleRate);
+			lowPassFilters[channel].setFrequency(params["lowPassFreq"]);
+			highPassFilters[channel].setSampleRate(sampleRate);
+			highPassFilters[channel].setFrequency(params["highPassFreq"]);
 
 			envFollowers[channel].setSampleRate(sampleRate);
 			envFollowers[channel].setAttack(DEFAULT_DUCK_TIME);
@@ -74,15 +76,15 @@ struct StereoDelay {
 		pingPong = params["pingPong"] == 1.0;
 		isOn = params["isOn"] == 1.0;
 
-		targetDelaySizes[0] = lengthToSamples(sampleRate, params["leftDelayLength"]);
-		targetDelaySizes[1] = lengthToSamples(sampleRate, params["rightDelayLength"]);
+		delaySizeL.setValue(lengthToSamples(sampleRate, params["leftDelayLength"]));
+		delaySizeR.setValue(lengthToSamples(sampleRate, params["rightDelayLength"]));
 						
 		feedbackGain = params["feedback"];
 		dryWetMix = params["mix"];
 
 		for (int i = 0; i < 2; ++i) {
-			lowPassFilters[i].setFrequency(params["lowPassFreq"] / sampleRate);
-			highPassFilters[i].setFrequency(params["highPassFreq"] / sampleRate);
+			lowPassFilters[i].setFrequency(params["lowPassFreq"]);
+			highPassFilters[i].setFrequency(params["highPassFreq"]);
 
 		}
 
@@ -96,11 +98,8 @@ struct StereoDelay {
 				auto leftS = inputBuffer[0][s];
 				auto rightS = inputBuffer[1][s];
 
-				auto delaySizeL = paramFilters[0].process(targetDelaySizes[0]);
-				auto delaySizeR = paramFilters[1].process(targetDelaySizes[1]);
-
-				auto leftDelayRead = ringBuffers[0].read(delaySizeL);
-				auto rightDelayRead = ringBuffers[1].read(delaySizeR);
+				auto leftDelayRead = ringBuffers[0].read(delaySizeL.get());
+				auto rightDelayRead = ringBuffers[1].read(delaySizeR.get());
 
 				float leftDelayInput, rightDelayInput;
 
@@ -138,13 +137,13 @@ protected:
 	int delayBufferSize;
 
 	array<RingBuffer<float>, 2> ringBuffers;
-	array<OnePoleFilter, 2> paramFilters;
 	array<OnePoleFilter, 2> lowPassFilters;
 	array<OnePoleFilter, 2> highPassFilters;
 	array<EnvFollower, 2> envFollowers;
 
 	// Parameters
-	array<float, 2> targetDelaySizes;
+	FilteredParameter delaySizeL;
+	FilteredParameter delaySizeR;
 	float feedbackGain;
 	float dryWetMix;
 	bool pingPong;

@@ -6,6 +6,8 @@
               pluginFormats="buildAU,buildVST3" pluginVST3Category="Delay,Fx">
   <MAINGROUP id="oEGvMH" name="Space Chili">
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
+      <FILE id="kzmHFw" name="FilteredParameter.h" compile="0" resource="0"
+            file="Source/FilteredParameter.h"/>
       <FILE id="Y7llGD" name="DSPParameters.h" compile="0" resource="0" file="Source/DSPParameters.h"/>
       <FILE id="f5yH3m" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
       <FILE id="lsfwTn" name="SimpleDelay.h" compile="0" resource="0" file="Source/SimpleDelay.h"/>
