@@ -21,7 +21,7 @@ enum TimeMode {STRAIGHT, TRIPLETS, DOTTED};
 #define DEFAULT_DELAY_LEN       250.0f
 #define DEFAULT_FEEDBACK_GAIN   35.0f
 #define DEFAULT_MIX             35.0f
-#define DEFAULT_LINK            true
+#define DEFAULT_LINK            false
 #define DEFAULT_SYNC            false
 #define DEFAULT_BPM             120.0f
 #define DEFAULT_CLOCK_SRC       TempoSource::HOST
@@ -110,12 +110,12 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
 
 private:
     //==============================================================================
     
     // Parameters
-    juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioParameterFloat* leftDelaySizeParam;
     juce::AudioParameterFloat* rightDelaySizeParam;

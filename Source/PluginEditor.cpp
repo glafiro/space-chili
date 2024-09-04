@@ -13,9 +13,15 @@
 DelayAudioProcessorEditor::DelayAudioProcessorEditor (DelayAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    bgImage = juce::ImageCache::getFromMemory(BinaryData::delaybg1_png, BinaryData::delaybg1_pngSize);
+
+    addAndMakeVisible(leftLengthKnob);
+    addAndMakeVisible(rightLengthKnob);
+    addAndMakeVisible(feedbackKnob);
+    addAndMakeVisible(mixKnob);
+    addAndMakeVisible(duckingKnob);
+    
+    setSize (WIDTH * MULT, HEIGHT * MULT);
 }
 
 DelayAudioProcessorEditor::~DelayAudioProcessorEditor()
@@ -25,16 +31,18 @@ DelayAudioProcessorEditor::~DelayAudioProcessorEditor()
 //==============================================================================
 void DelayAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.drawImage(bgImage, getLocalBounds().toFloat());
 
-    g.setColour (juce::Colours::white);
+    g.setColour (juce::Colours::black);
     g.setFont (juce::FontOptions (15.0f));
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void DelayAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+
+    leftLengthKnob.setTopLeftPosition(leftLengthKnob.left, leftLengthKnob.top);
+    rightLengthKnob.setTopLeftPosition(rightLengthKnob.left, rightLengthKnob.top);
+    feedbackKnob.setTopLeftPosition(feedbackKnob.left, feedbackKnob.top);
+    mixKnob.setTopLeftPosition(mixKnob.left, mixKnob.top);
+    duckingKnob.setTopLeftPosition(duckingKnob.left, duckingKnob.top);
 }

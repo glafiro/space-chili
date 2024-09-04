@@ -274,9 +274,7 @@ bool DelayAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* DelayAudioProcessor::createEditor()
 {
-    auto editor = new juce::GenericAudioProcessorEditor(*this);
-    editor->setSize(500, 500);
-    return editor;
+    return new DelayAudioProcessorEditor(*this);
 }
 
 //==============================================================================
