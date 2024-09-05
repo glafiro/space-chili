@@ -20,8 +20,8 @@ inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
 
 float BPM2Ms(int choice, float tempo=120.0f, int timeMode=0) {
     auto mult = 4.0f / static_cast<float>(1 << (choice));
-    if (timeMode == TRIPLETS) mult *= (2.0f / 3.0f);   
-    if (timeMode == DOTTED) mult *= 1.5f;
+    if (timeMode == TimeMode::TRIPLETS) mult *= (2.0f / 3.0f);   
+    if (timeMode == TimeMode::DOTTED) mult *= 1.5f;
     return static_cast<float>((60000.0f / tempo) * mult);
 }
 
@@ -234,9 +234,9 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
     float rightDelaySize;
 
     if (syncToBPMParam->get()) {
-        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, timeModeParam->getIndex());
+        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, timeModeParam->get());
         if (linkedSizes) rightDelaySize = leftDelaySize;
-        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParam->getIndex());
+        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParam->get());
     }
 
     else {
@@ -275,6 +275,9 @@ bool DelayAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* DelayAudioProcessor::createEditor()
 {
     return new DelayAudioProcessorEditor(*this);
+    //auto editor = new juce::GenericAudioProcessorEditor(*this);
+    //editor->setSize(500, 500);
+    //return editor;
 }
 
 //==============================================================================
@@ -365,10 +368,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         DEFAULT_SUBDIVISION
         ));
 
-    layout.add(std::make_unique <juce::AudioParameterChoice>(
+    layout.add(std::make_unique <juce::AudioParameterInt>(
         ParameterID::timeMode,
         "Time mode",
-        juce::StringArray{"Straight", "Triplet", "Dotted"},
+        0, 2,
         DEFAULT_TIME_MODE
     ));
 

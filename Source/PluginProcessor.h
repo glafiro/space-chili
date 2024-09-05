@@ -127,7 +127,7 @@ private:
     juce::AudioParameterFloat* internalBPMParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
-    juce::AudioParameterChoice* timeModeParam;
+    juce::AudioParameterInt* timeModeParam;
     juce::AudioParameterBool* pingPongParam;
     juce::AudioParameterFloat* leftRightRatioParam;
     juce::AudioParameterFloat* lowPassFreqParam;
