@@ -6,13 +6,13 @@
               pluginFormats="buildAU,buildVST3" pluginVST3Category="Delay,Fx">
   <MAINGROUP id="oEGvMH" name="Space Chili">
     <GROUP id="{585E49CE-FB1D-F52D-8330-7462E9162A41}" name="Resources">
+      <FILE id="FL0vIV" name="base-layout.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/base-layout.png"/>
       <FILE id="vrOQkd" name="chorusbtn.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/chorusbtn.png"/>
       <FILE id="H7JOYp" name="linkbtn.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/linkbtn.png"/>
       <FILE id="rrSL2v" name="screens.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/screens.png"/>
       <FILE id="mZWGEn" name="sliderbtn.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/sliderbtn.png"/>
       <FILE id="pFYAOG" name="switch.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/switch.png"/>
       <FILE id="mEbiza" name="timeselect.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/timeselect.png"/>
-      <FILE id="To8teu" name="vstbg-1.png" compile="0" resource="1" file="../../../../SpaceChili/UI/vstbg-1.png"/>
     </GROUP>
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
       <FILE id="Q9nljD" name="LinkedKnobs.h" compile="0" resource="0" file="Source/LinkedKnobs.h"/>

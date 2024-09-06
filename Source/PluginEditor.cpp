@@ -13,7 +13,7 @@
 DelayAudioProcessorEditor::DelayAudioProcessorEditor (DelayAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    bgImage = juce::ImageCache::getFromMemory(BinaryData::vstbg1_png, BinaryData::vstbg1_pngSize);
+    bgImage = juce::ImageCache::getFromMemory(BinaryData::baselayout_png, BinaryData::baselayout_pngSize);
     screenImage = juce::ImageCache::getFromMemory(BinaryData::screens_png, BinaryData::screens_pngSize);
     bpmScreenImg = screenImage.getClippedImage(juce::Rectangle<int>(486, 12, 224, 142));
     presetManagerImg = screenImage.getClippedImage(juce::Rectangle<int>(0, 0, 486, 154));
@@ -53,7 +53,7 @@ DelayAudioProcessorEditor::~DelayAudioProcessorEditor()
 void DelayAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.drawImage(bgImage, getLocalBounds().toFloat());
-    //g.drawImage(bpmScreenImg, juce::Rectangle<float>(164 * MULT, 315 * MULT, 111 * MULT, 71 * MULT));
+    g.drawImage(bpmScreenImg, juce::Rectangle<float>(164 * MULT, 315 * MULT, 111 * MULT, 71 * MULT));
     g.drawImage(presetManagerImg, juce::Rectangle<float>(571 * MULT, 223 * MULT, 243 * MULT, 77 * MULT));
     g.drawImage(filterSliderImg, juce::Rectangle<float>(317 * MULT, 276 * MULT, 30 * MULT, 15 * MULT));
     g.drawImage(switchImg, juce::Rectangle<float>(167 * MULT, 273 * MULT, 21 * MULT, 30 * MULT));

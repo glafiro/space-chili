@@ -28,12 +28,12 @@
 
 #define MULT MULT_M
 
-#define KNOB_SIZE       static_cast<int>(91 * MULT)
-#define KNOB_SIZE_S     static_cast<int>(70 * MULT)
-#define LEFT_MARGIN     static_cast<int>(38 * MULT)
-#define TOP_MARGIN      static_cast<int>(61 * MULT)
-#define KNOB_SPACING    static_cast<int>(45 * MULT)
-#define KNOB_SPACING_V  static_cast<int>(96 * MULT)
+#define KNOB_SIZE       static_cast<int>(120 * MULT)
+#define KNOB_SIZE_S     static_cast<int>(93 * MULT)
+#define LEFT_MARGIN     static_cast<int>(24 * MULT)
+#define TOP_MARGIN      static_cast<int>(49 * MULT)
+#define KNOB_SPACING    static_cast<int>(15 * MULT)
+#define KNOB_SPACING_V  static_cast<int>(68 * MULT)
 
 //==============================================================================
 /**
@@ -63,34 +63,34 @@ private:
     juce::Image chorusBtnImg;
     juce::Image switchImg;
 
-    Knob leftLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN, TOP_MARGIN};
+    Knob leftLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN, TOP_MARGIN, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment leftLengthAttachment{
         audioProcessor.apvts, ParameterID::leftDelaySize.getParamID(), leftLengthKnob.slider
-    };    Knob rightLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + KNOB_SIZE + KNOB_SPACING, TOP_MARGIN};
+    };    Knob rightLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + KNOB_SIZE + KNOB_SPACING, TOP_MARGIN, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment rightLengthAttachment {
         audioProcessor.apvts, ParameterID::rightDelaySize.getParamID(), rightLengthKnob.slider
     };
-    Knob feedbackKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 2, TOP_MARGIN};
+    Knob feedbackKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 2, TOP_MARGIN, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment feedbackAttachment{
         audioProcessor.apvts, ParameterID::feedback.getParamID(), feedbackKnob.slider
     };
-    Knob mixKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 3, TOP_MARGIN};
+    Knob mixKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 3 + 2, TOP_MARGIN, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment mixAttachment{
         audioProcessor.apvts, ParameterID::dryWet.getParamID(), mixKnob.slider
     };
-    Knob duckingKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 3, TOP_MARGIN + KNOB_SIZE + KNOB_SPACING_V};
+    Knob duckingKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 3 + 2, TOP_MARGIN + KNOB_SIZE + KNOB_SPACING_V, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment duckingAttachment{
         audioProcessor.apvts, ParameterID::duckingAmount.getParamID(), duckingKnob.slider
     };
-    Knob chorusRateKnob{KNOB_SIZE_S, KNOB_SIZE_S, static_cast<int>(604 * MULT), static_cast<int>(85 * MULT)};
+    Knob chorusRateKnob{KNOB_SIZE_S, KNOB_SIZE_S, static_cast<int>(592 * MULT), static_cast<int>(74 * MULT), 1};
     juce::AudioProcessorValueTreeState::SliderAttachment chorusRateAttachment{
         audioProcessor.apvts, ParameterID::chorusRate.getParamID(), chorusRateKnob.slider
     };
-    Knob chorusDepthKnob{KNOB_SIZE_S, KNOB_SIZE_S, static_cast<int>(709 * MULT), static_cast<int>(85 * MULT)};
+    Knob chorusDepthKnob{KNOB_SIZE_S, KNOB_SIZE_S, static_cast<int>(697 * MULT), static_cast<int>(74 * MULT), 1};
     juce::AudioProcessorValueTreeState::SliderAttachment chorusDepthAttachment{
         audioProcessor.apvts, ParameterID::chorusDepth.getParamID(), chorusDepthKnob.slider
     };
-    Knob stereoOffsetKnob{KNOB_SIZE_S, KNOB_SIZE_S, static_cast<int>(51 * MULT), static_cast<int>(280 * MULT)};
+    Knob stereoOffsetKnob{KNOB_SIZE_S, KNOB_SIZE_S, static_cast<int>(39 * MULT), static_cast<int>(269 * MULT), 2};
     juce::AudioProcessorValueTreeState::SliderAttachment stereoOffsetAttachment{
         audioProcessor.apvts, ParameterID::leftRightRatio.getParamID(), stereoOffsetKnob.slider
     };
@@ -126,8 +126,9 @@ private:
     ArrowComboBoxAttachment timeDivRightAttachment{
         audioProcessor.apvts, ParameterID::timeMode.getParamID(), timeDivRightBox
     };
-
-    BPMScreen bpmScreen{ 111 * MULT, 71 * MULT, 164 * MULT, 315 * MULT };
+    BPMScreen bpmScreen{ 111 * MULT, 71 * MULT, 164 * MULT, 315 * MULT};
+    BPMScreenAttachment bpmScreenAttachment{
+    audioProcessor.apvts, ParameterID::internalBPM.getParamID(), ParameterID::internalOrHost.getParamID(), bpmScreen };
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayAudioProcessorEditor)
