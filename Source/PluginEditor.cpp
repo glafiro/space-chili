@@ -17,11 +17,6 @@ DelayAudioProcessorEditor::DelayAudioProcessorEditor (DelayAudioProcessor& p)
     screenImage = juce::ImageCache::getFromMemory(BinaryData::screens_png, BinaryData::screens_pngSize);
     bpmScreenImg = screenImage.getClippedImage(juce::Rectangle<int>(486, 12, 224, 142));
     presetManagerImg = screenImage.getClippedImage(juce::Rectangle<int>(0, 0, 486, 154));
-    filterSliderImg = juce::ImageCache::getFromMemory(BinaryData::sliderbtn_png, BinaryData::sliderbtn_pngSize);
-    linkBtnImg = juce::ImageCache::getFromMemory(BinaryData::linkbtn_png, BinaryData::linkbtn_pngSize);
-    switchImg = juce::ImageCache::getFromMemory(BinaryData::switch_png, BinaryData::switch_pngSize);
-
-    linkBtn.setImages(linkBtnImg, linkBtnImg);
 
     addAndMakeVisible(leftLengthKnob);
     addAndMakeVisible(rightLengthKnob);
@@ -55,8 +50,6 @@ void DelayAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawImage(bgImage, getLocalBounds().toFloat());
     g.drawImage(bpmScreenImg, juce::Rectangle<float>(164 * MULT, 315 * MULT, 111 * MULT, 71 * MULT));
     g.drawImage(presetManagerImg, juce::Rectangle<float>(571 * MULT, 223 * MULT, 243 * MULT, 77 * MULT));
-    g.drawImage(filterSliderImg, juce::Rectangle<float>(317 * MULT, 276 * MULT, 30 * MULT, 15 * MULT));
-    g.drawImage(switchImg, juce::Rectangle<float>(167 * MULT, 273 * MULT, 21 * MULT, 30 * MULT));
 
     g.setColour (juce::Colours::black);
     g.setFont (juce::FontOptions (15.0f));

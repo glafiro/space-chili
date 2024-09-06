@@ -8,6 +8,13 @@
 
 #pragma once
 
+#define MULT_S  1.0f 
+#define MULT_M  1.25f
+#define MULT_L  1.5f 
+#define MULT_XL 2.0f
+
+#define MULT MULT_L
+
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "GuiComponents.h"
@@ -21,12 +28,6 @@
 #define WIDTH   832
 #define HEIGHT  432
 
-#define MULT_S  1.0f 
-#define MULT_M  1.25f
-#define MULT_L  1.5f 
-#define MULT_XL 2.0f
-
-#define MULT MULT_M
 
 #define KNOB_SIZE       static_cast<int>(120 * MULT)
 #define KNOB_SIZE_S     static_cast<int>(93 * MULT)
@@ -57,11 +58,6 @@ private:
     juce::Image screenImage;
     juce::Image bpmScreenImg;
     juce::Image presetManagerImg;
-    juce::Image filterSliderImg;
-    juce::Image timeSelecImg;
-    juce::Image linkBtnImg;
-    juce::Image chorusBtnImg;
-    juce::Image switchImg;
 
     Knob leftLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN, TOP_MARGIN, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment leftLengthAttachment{
@@ -94,36 +90,36 @@ private:
     juce::AudioProcessorValueTreeState::SliderAttachment stereoOffsetAttachment{
         audioProcessor.apvts, ParameterID::leftRightRatio.getParamID(), stereoOffsetKnob.slider
     };
-    VerticalSlider lowPassSlider{20, static_cast<int>(120 * MULT), static_cast<int>(325 * MULT), static_cast<int>(230 * MULT)};
+    VerticalSlider lowPassSlider{ static_cast<int>(40 * MULT), static_cast<int>(120 * MULT), static_cast<int>(318 * MULT), static_cast<int>(230 * MULT) };
     juce::AudioProcessorValueTreeState::SliderAttachment lowPassAttachment{
         audioProcessor.apvts, ParameterID::lowPassFreq.getParamID(), lowPassSlider.slider
     };
-    VerticalSlider highPassSlider{ 20, static_cast<int>(120 * MULT), static_cast<int>(380 * MULT), static_cast<int>(230 * MULT) };
+    VerticalSlider highPassSlider{ static_cast<int>(40 * MULT), static_cast<int>(120 * MULT), static_cast<int>(373 * MULT), static_cast<int>(230 * MULT)};
     juce::AudioProcessorValueTreeState::SliderAttachment highPassAttachment{
         audioProcessor.apvts, ParameterID::highPassFreq.getParamID(), highPassSlider.slider
     };
-    ImageToggleBtn linkBtn{static_cast<int>(25 * MULT),  static_cast<int>(30 * MULT), static_cast<int>(143 * MULT), static_cast<int>(165 * MULT) };
+    ImageToggleBtn linkBtn{static_cast<int>(28 * MULT),  static_cast<int>(32 * MULT), static_cast<int>(139 * MULT), static_cast<int>(168 * MULT), 0 };
     juce::AudioProcessorValueTreeState::ButtonAttachment linkAttachment{
         audioProcessor.apvts, ParameterID::delaySync.getParamID(), linkBtn.btn
     };
-    ImageToggleBtn chorusBtn{static_cast<int>(29 * MULT),  static_cast<int>(33 * MULT), static_cast<int>(582 * MULT), static_cast<int>(37 * MULT) };
+    ImageToggleBtn chorusBtn{static_cast<int>(29 * MULT),  static_cast<int>(33 * MULT), static_cast<int>(580 * MULT), static_cast<int>(38 * MULT), 1};
     juce::AudioProcessorValueTreeState::ButtonAttachment chorusAttachment{
         audioProcessor.apvts, ParameterID::chorusOn.getParamID(), chorusBtn.btn
     };  
-    ImageToggleBtn pingPongBtn{static_cast<int>(21 * MULT),  static_cast<int>(30 * MULT), static_cast<int>(167 * MULT), static_cast<int>(273 * MULT) };
+    ImageToggleBtn pingPongBtn{static_cast<int>(32 * MULT),  static_cast<int>(24 * MULT), static_cast<int>(168 * MULT), static_cast<int>(272 * MULT), 2 };
     juce::AudioProcessorValueTreeState::ButtonAttachment pingPongAttachment{
         audioProcessor.apvts, ParameterID::pingPong.getParamID(), pingPongBtn.btn
     };    
-    ImageToggleBtn tempoSyncBtn{static_cast<int>(21 * MULT),  static_cast<int>(30 * MULT), static_cast<int>(167 * MULT), static_cast<int>(250 * MULT) };
+    ImageToggleBtn tempoSyncBtn{static_cast<int>(32 * MULT),  static_cast<int>(24 * MULT), static_cast<int>(168 * MULT), static_cast<int>(251 * MULT), 2 };
     juce::AudioProcessorValueTreeState::ButtonAttachment tempoSyncAttachment{
         audioProcessor.apvts, ParameterID::syncToBPM.getParamID(), tempoSyncBtn.btn
     };
-    ArrowComboBox timeDivLeftBox{ static_cast<int>(85 * MULT),  static_cast<int>(23 * MULT), static_cast<int>(43 * MULT), static_cast<int>(205 * MULT) };
-    ArrowComboBoxAttachment timeDivLeftAttachment{
+    TimeModeBox timeDivLeftBox{ static_cast<int>(90 * MULT),  static_cast<int>(28 * MULT), static_cast<int>(43 * MULT), static_cast<int>(205 * MULT) };
+    TimeModeBoxAttachment timeDivLeftAttachment{
         audioProcessor.apvts, ParameterID::timeMode.getParamID(), timeDivLeftBox
     };
-    ArrowComboBox timeDivRightBox{ static_cast<int>(85 * MULT),  static_cast<int>(23 * MULT), static_cast<int>(180 * MULT), static_cast<int>(205 * MULT) };
-    ArrowComboBoxAttachment timeDivRightAttachment{
+    TimeModeBox timeDivRightBox{ static_cast<int>(90 * MULT),  static_cast<int>(28 * MULT), static_cast<int>(180 * MULT), static_cast<int>(205 * MULT) };
+    TimeModeBoxAttachment timeDivRightAttachment{
         audioProcessor.apvts, ParameterID::timeMode.getParamID(), timeDivRightBox
     };
     BPMScreen bpmScreen{ 111 * MULT, 71 * MULT, 164 * MULT, 315 * MULT};
