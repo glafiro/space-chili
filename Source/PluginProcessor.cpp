@@ -204,12 +204,12 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     bool bpmChanged = false;
     auto hostBPM = getPlayHead()->getPosition()->getBpm();
 
-    if (useHostBPM && hostBPM.hasValue() && *hostBPM != currentHostBPM) {
+    if (useHostBPM.load() && hostBPM.hasValue() && *hostBPM != currentHostBPM) {
         currentHostBPM = *hostBPM;
         bpmChanged = true;
     }
 
-    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
+    if (bpmChanged || isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
         update(buffer, currentHostBPM);
     }
 
@@ -227,7 +227,7 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 }
 
 void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM) {
-    float bpm = useHostBPM ? hostBPM : internalBPMParam->get();
+    float bpm = useHostBPM.load() ? hostBPM : internalBPMParam->get();
     bool linkedSizes = delaySyncParam->get();
 
     float leftDelaySize;
@@ -275,9 +275,9 @@ bool DelayAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* DelayAudioProcessor::createEditor()
 {
     return new DelayAudioProcessorEditor(*this);
-    //auto editor = new juce::GenericAudioProcessorEditor(*this);
-    //editor->setSize(500, 500);
-    //return editor;
+    /*auto editor = new juce::GenericAudioProcessorEditor(*this);
+    editor->setSize(500, 500);
+    return editor;*/
 }
 
 //==============================================================================

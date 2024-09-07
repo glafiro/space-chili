@@ -139,7 +139,7 @@ private:
     juce::AudioParameterFloat* chorusRateParam;
 
     std::atomic<bool> parametersChanged{ false };
-    std::atomic<int> useHostBPM{ false };
+    std::atomic<int> useHostBPM{ 1 };
     float currentHostBPM {DEFAULT_BPM};
 
     void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override

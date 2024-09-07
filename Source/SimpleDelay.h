@@ -21,6 +21,9 @@ struct SimpleDelay {
 
 	SimpleDelay() :
 		delayBufferSize(0),
+		crossfade(0.0),
+		targetDelaySize(0),
+		currentDelaySize(0),
 		feedbackGain(DEFAULT_FEEDBACK_GAIN),
 		sampleRate(DEFAULT_SAMPLE_RATE),
 		dryWetMix(DEFAULT_DRY_WET_MIX)
@@ -29,6 +32,8 @@ struct SimpleDelay {
 	void prepare(float _nInputChannels, float _sampleRate, int blockSize, float lengthInMs) {
 
 		sampleRate = _sampleRate;
+
+		crossfadeInc = (1.0f / (0.05f * sampleRate));
 
 		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, lengthInMs)));
 		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
@@ -43,10 +48,10 @@ struct SimpleDelay {
 		for (auto s = 0; s < numSamples; ++s) {
 
 			auto sample = inputBuffer[activeChannel][s];
+			
+			targetDelaySize = delayValues[s];
 
-			float delaySize = delayValues[s];
-
-			auto delayRead = ringBuffer.read(delaySize);
+			auto delayRead = ringBuffer.read(targetDelaySize);
 
 			float delayInput;
 
@@ -66,4 +71,9 @@ protected:
 	// Parameters
 	float feedbackGain;
 	float dryWetMix;
+
+	float crossfade;
+	float crossfadeInc;
+	float currentDelaySize;
+	float targetDelaySize;
 };

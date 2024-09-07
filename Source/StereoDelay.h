@@ -36,6 +36,8 @@ struct StereoDelay {
 		duckingAmt(0.0f),
 		feedbackGain(0.0),
 		dryWetMix(0.0),
+		crossfade(0.0f),
+		crossfadeInc(0.0f),
 		sampleRate(DEFAULT_SAMPLE_RATE),
 		nInputChannels(DEFAULT_INPUT_CHANNELS)
 	{}
@@ -45,11 +47,15 @@ struct StereoDelay {
 		sampleRate = params["sampleRate"];
 		nInputChannels = params["nChannels"];
 
+		crossfadeInc = (1.0f / (0.05f * sampleRate));
+
 		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, params["delayLength"])));
 		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
 
-		delaySizeL.prepare(sampleRate, lengthInSamples);
-		delaySizeR.prepare(sampleRate, lengthInSamples);
+		delaySizeL = lengthInSamples;
+		delaySizeR = lengthInSamples;
+		targetSizeL = delaySizeL;
+		targetSizeR = delaySizeR;
 
 		for (int channel = 0; channel < MAX_CHANNELS; ++channel) {
 			ringBuffers[channel] = RingBuffer<float>(delayBufferSize);
@@ -68,7 +74,7 @@ struct StereoDelay {
 		pingPong = params["pingPong"] == 1.0f;
 		feedbackGain = params["feedback"];
 		dryWetMix = params["mix"];
-
+		
 	}
 
 	void update(DSPParameters<float>& params) {
@@ -76,8 +82,10 @@ struct StereoDelay {
 		pingPong = params["pingPong"] == 1.0;
 		isOn = params["isOn"] == 1.0;
 
-		delaySizeL.setValue(lengthToSamples(sampleRate, params["leftDelayLength"]));
-		delaySizeR.setValue(lengthToSamples(sampleRate, params["rightDelayLength"]));
+		if (crossfade == 0.0f) {
+			targetSizeL = lengthToSamples(sampleRate, params["leftDelayLength"]);
+			targetSizeR = lengthToSamples(sampleRate, params["rightDelayLength"]);
+		}
 						
 		feedbackGain = params["feedback"];
 		dryWetMix = params["mix"];
@@ -98,8 +106,28 @@ struct StereoDelay {
 				auto leftS = inputBuffer[0][s];
 				auto rightS = inputBuffer[1][s];
 
-				auto leftDelayRead = ringBuffers[0].read(delaySizeL.get());
-				auto rightDelayRead = ringBuffers[1].read(delaySizeR.get());
+
+				auto leftDelayRead = ringBuffers[0].read(delaySizeL);
+				auto rightDelayRead = ringBuffers[1].read(delaySizeR);
+
+				if (crossfade == 0.0f) {
+					if ((delaySizeL != targetSizeL) || (delaySizeR != targetSizeR)) {
+						crossfade = crossfadeInc;
+					}
+				}				
+
+				if (crossfade > 0.0f) {
+					float newDelayL = ringBuffers[0].read(targetSizeL);
+					float newDelayR = ringBuffers[1].read(targetSizeR);
+					leftDelayRead = (1.0f - crossfade) * leftDelayRead + crossfade * newDelayL;
+					rightDelayRead = (1.0f - crossfade) * rightDelayRead + crossfade * newDelayR;
+					crossfade += crossfadeInc;
+					if (crossfade > 1.0f) {
+						delaySizeL = targetSizeL;
+						delaySizeR = targetSizeR;
+						crossfade = 0.0f;
+					}
+				}
 
 				float leftDelayInput, rightDelayInput;
 
@@ -142,8 +170,12 @@ protected:
 	array<EnvFollower, 2> envFollowers;
 
 	// Parameters
-	FilteredParameter delaySizeL;
-	FilteredParameter delaySizeR;
+	float delaySizeL;
+	float delaySizeR;
+	float targetSizeL;
+	float targetSizeR;
+	float crossfade;
+	float crossfadeInc;
 	float feedbackGain;
 	float dryWetMix;
 	bool pingPong;

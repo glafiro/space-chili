@@ -14,6 +14,7 @@ using std::array;
 #define DEFAULT_SAMPLE_RATE	44100
 #define DEFAULT_DRY_WET		35.0f
 #define DEFAULT_DL_LENGTH	100.0f
+#define DEFAULT_FILTER_FREQ 3.0f
 
 #define MAX_CHANNELS	2
 #define MAX_DELAYS		2
@@ -64,6 +65,11 @@ struct Chorus {
 		// Initialize delays
 		delays[0].prepare(nInputChannels, sampleRate, blockSize, 100.f);
 		delays[1].prepare(nInputChannels, sampleRate, blockSize, 150.f);
+
+		filterL.setSampleRate(sampleRate);
+		filterR.setSampleRate(sampleRate);
+		filterL.setFrequency(DEFAULT_FILTER_FREQ);
+		filterR.setFrequency(DEFAULT_FILTER_FREQ);
 	}
 
 	void update(DSPParameters<float>& params) {
@@ -98,8 +104,8 @@ struct Chorus {
 
 			leftDelaySize = lengthToSamples(sampleRate, leftDelayLength);
 			rightDelaySize = lengthToSamples(sampleRate, rightDelayLength);
-			delayValues[0][s] = leftDelaySize;
-			delayValues[1][s] = rightDelaySize;
+			delayValues[0][s] = filterL.process(leftDelaySize);
+			delayValues[1][s] = filterR.process(rightDelaySize);
 		}
 		
 		if (isOn && leftDelaySize > 0.0f && rightDelaySize > 0.0f) {
@@ -134,5 +140,9 @@ protected:
 	float modDepth;
 	float lfoRate;
 	array<LFO, 2> lfos;
+	
+	// XD
+	OnePoleFilter filterL;
+	OnePoleFilter filterR;
 
 };
