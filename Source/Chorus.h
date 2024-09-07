@@ -5,6 +5,7 @@
 #include "OnePoleFilter.h"
 #include "Utils.h"
 #include "SimpleDelay.h"
+#include "FilteredParameter.h"
 #include "LFO.h"
 
 using std::vector;
@@ -19,7 +20,7 @@ using std::array;
 #define MAX_CHANNELS	2
 #define MAX_DELAYS		2
 
-#define L_PHASE_OFFSET	1.6f
+#define L_PHASE_OFFSET	0.5f
 #define R_PHASE_OFFSET	0.0f
 #define LFO_FREQ		1.0
 
@@ -28,17 +29,23 @@ using std::array;
 #define DEFAULT_L_DEPTH	20.0f
 #define DEFAULT_R_DEPTH	20.0f
 
+#define MAX_DELAY_LENGTH			2500.0f
+#define DEFAULT_SAMPLE_RATE			44100
+#define DEFAULT_FEEDBACK_GAIN		0.0f
+#define DEFAULT_DRY_WET_MIX			0.5f
+
+
+#define DEFAULT_ATK		50.0f
+
 struct Chorus {
 
 	Chorus() :
 		isOn(false),
-		delays(),
 		lfos(),
-		lfoRate(1.0f),
 		modDepth(0.5f),
-		delayValues(),
 		minDelays(),
-		depths(),
+		feedbackGain(DEFAULT_FEEDBACK_GAIN),
+		dryWetMix(DEFAULT_DRY_WET_MIX),
 		sampleRate(DEFAULT_SAMPLE_RATE)
 	{}
 
@@ -47,9 +54,13 @@ struct Chorus {
 		auto blockSize = params["blockSize"];
 		auto nInputChannels = params["nChannels"];
 
+		amplitude.prepare(sampleRate);
+
+		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
+
 		// Initialize LFO and delay array values
 		for (int i = 0; i < MAX_DELAYS; ++i) {
-			delayValues[i].resize(params["blockSize"], 0.0f);
+			ringBuffers[i] = RingBuffer<float>(delayBufferSize);
 		}
 		lfos[0].reset(sampleRate, L_PHASE_OFFSET);
 		lfos[0].reset(sampleRate, R_PHASE_OFFSET);
@@ -57,74 +68,73 @@ struct Chorus {
 		// Set chorus parameters
 		minDelays[0] = DEFAULT_L_MIN;
 		minDelays[1] = DEFAULT_R_MIN;
-		depths[0] = DEFAULT_L_DEPTH;
-		depths[1] = DEFAULT_R_DEPTH;
-		lfos[0].setFrequency(params["ChorusRate"]);
-		lfos[1].setFrequency(params["ChorusRate"]);
+		lfoRate.prepare(sampleRate, DEFAULT_FILTER_FREQUENCY, params["chorusRate"]);
 
-		// Initialize delays
-		delays[0].prepare(nInputChannels, sampleRate, blockSize, 100.f);
-		delays[1].prepare(nInputChannels, sampleRate, blockSize, 150.f);
+		lfos[0].setFrequency(lfoRate.read());
+		lfos[1].setFrequency(lfoRate.read() * 1.02f);
+		modDepth.prepare(sampleRate, DEFAULT_FILTER_FREQ, params["chorusDepth"]);
 
 		filterL.setSampleRate(sampleRate);
 		filterR.setSampleRate(sampleRate);
 		filterL.setFrequency(DEFAULT_FILTER_FREQ);
 		filterR.setFrequency(DEFAULT_FILTER_FREQ);
+
 	}
 
 	void update(DSPParameters<float>& params) {
-		isOn = params["isOn"];
+		amplitude.setTarget(params["isOn"]);
 
-		modDepth = params["chorusDepth"];
-		lfoRate = params["chorusRate"];
-
-		lfos[0].setFrequency(lfoRate);
-		lfos[1].setFrequency(lfoRate);
+		modDepth.setValue(params["chorusDepth"]);
+		lfoRate.setValue(params["chorusRate"]);
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples) {
 		
 		float leftDelaySize{ 0.0f }, rightDelaySize{ 0.0f };
 
-		for (int s = 0; s < numSamples; ++s) {
-			auto maxDelayL = minDelays[0] + DEFAULT_L_DEPTH;
-			auto maxDelayR = minDelays[1] + DEFAULT_R_DEPTH;
+		if (amplitude.getNextValue() > SILENCE) {
+			for (int s = 0; s < numSamples; ++s) {
+				auto maxDelayL = minDelays[0] + DEFAULT_L_DEPTH;
+				auto maxDelayR = minDelays[1] + DEFAULT_R_DEPTH;
 			
-			float halfL = (maxDelayL - minDelays[0]) / 2.0f;
-			float halfR = (maxDelayR - minDelays[1]) / 2.0f;
+				float halfL = (maxDelayL - minDelays[0]) / 2.0f;
+				float halfR = (maxDelayR - minDelays[1]) / 2.0f;
 			
-			float midL = halfL + minDelays[0];
-			float midR = halfR + minDelays[1];
-			
-			auto lfoOutputL = lfos[0].nextSample();
-			auto lfoOutputR = lfos[1].nextSample();
-		
-			auto leftDelayLength = lfoOutputL  * modDepth * halfL + midL;
-			auto rightDelayLength = lfoOutputR * modDepth * halfR + midR;
+				float midL = halfL + minDelays[0];
+				float midR = halfR + minDelays[1];
 
-			leftDelaySize = lengthToSamples(sampleRate, leftDelayLength);
-			rightDelaySize = lengthToSamples(sampleRate, rightDelayLength);
-			delayValues[0][s] = filterL.process(leftDelaySize);
-			delayValues[1][s] = filterR.process(rightDelaySize);
-		}
+				auto currentRate = lfoRate.next();
+
+				auto lfoOutputL = lfos[0].updateAndGetNext(currentRate);
+				auto lfoOutputR = lfos[1].updateAndGetNext(currentRate * 1.02f);
+
+				auto currentModDepth = modDepth.next();
 		
-		if (isOn && leftDelaySize > 0.0f && rightDelaySize > 0.0f) {
-			delays[0].processBlock(
-				inputBuffer,
-				numChannels,
-				numSamples,
-				0,
-				delayValues[0]
-			);
-		
-			delays[1].processBlock(
-				inputBuffer,
-				numChannels,
-				numSamples,
-				1,
-				delayValues[1]
-			);
+				auto leftDelayLength = lfoOutputL  * currentModDepth * halfL + midL;
+				auto rightDelayLength = lfoOutputR * currentModDepth * halfR + midR;
+
+				leftDelaySize = lengthToSamples(sampleRate, leftDelayLength);
+				rightDelaySize = lengthToSamples(sampleRate, rightDelayLength);
+
+				auto delayReadL = ringBuffers[0].read(leftDelaySize);
+				auto delayReadR = ringBuffers[1].read(rightDelaySize);
+
+				float delayInputL, delayInputR;
+
+				auto leftS = inputBuffer[0][s];
+				auto rightS = inputBuffer[1][s];
+
+				ringBuffers[0].write(leftS + delayReadL * feedbackGain);
+				ringBuffers[1].write(rightS + delayReadR * feedbackGain);
+
+				dryWetMix = DEFAULT_DRY_WET_MIX * amplitude.getNextValue();
+
+				inputBuffer[0][s] = leftS * (1.0 - dryWetMix) + delayReadL * dryWetMix;
+				inputBuffer[1][s] = rightS * (1.0 - dryWetMix) + delayReadR * dryWetMix;
+				
+			}
 		}
+
 	}
 
 protected:
@@ -132,17 +142,22 @@ protected:
 	float sampleRate;
 	float minDelay;
 	float depth;
+	int delayBufferSize;
+	float feedbackGain;
+	float dryWetMix;
 
-	array<SimpleDelay, 2> delays;
-	array<vector<float>, 2> delayValues;
+	array<RingBuffer<float>, 2> ringBuffers;
 	array<float, 2> minDelays;
 	array<float, 2> depths;
-	float modDepth;
-	float lfoRate;
+	FilteredParameter modDepth;
+	FilteredParameter lfoRate;
+	LogarithmicFader amplitude;
 	array<LFO, 2> lfos;
 	
 	// XD
 	OnePoleFilter filterL;
 	OnePoleFilter filterR;
+
+
 
 };

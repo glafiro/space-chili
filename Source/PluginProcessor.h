@@ -117,26 +117,26 @@ private:
     
     // Parameters
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-    juce::AudioParameterFloat* leftDelaySizeParam;
-    juce::AudioParameterFloat* rightDelaySizeParam;
-    juce::AudioParameterFloat* feedbackParam;
-    juce::AudioParameterFloat* dryWetParam;
-    juce::AudioParameterBool* delaySyncParam;
-    juce::AudioParameterBool* syncToBPMParam;
+    juce::AudioParameterFloat*  leftDelaySizeParam;
+    juce::AudioParameterFloat*  rightDelaySizeParam;
+    juce::AudioParameterFloat*  feedbackParam;
+    juce::AudioParameterFloat*  dryWetParam;
+    juce::AudioParameterBool*   delaySyncParam;
+    juce::AudioParameterBool*   syncToBPMParam;
     juce::AudioParameterChoice* internalOrHostParam;
-    juce::AudioParameterFloat* internalBPMParam;
+    juce::AudioParameterFloat*  internalBPMParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
-    juce::AudioParameterInt* timeModeParam;
-    juce::AudioParameterBool* pingPongParam;
-    juce::AudioParameterFloat* leftRightRatioParam;
-    juce::AudioParameterFloat* lowPassFreqParam;
-    juce::AudioParameterFloat* highPassFreqParam;
-    juce::AudioParameterFloat* duckingAmountParam;
-    juce::AudioParameterBool* delayOnParam;
-    juce::AudioParameterBool* chorusOnParam;
-    juce::AudioParameterFloat* chorusDepthParam;
-    juce::AudioParameterFloat* chorusRateParam;
+    juce::AudioParameterInt*    timeModeParam;
+    juce::AudioParameterBool*   pingPongParam;
+    juce::AudioParameterFloat*  leftRightRatioParam;
+    juce::AudioParameterFloat*  lowPassFreqParam;
+    juce::AudioParameterFloat*  highPassFreqParam;
+    juce::AudioParameterFloat*  duckingAmountParam;
+    juce::AudioParameterBool*   delayOnParam;
+    juce::AudioParameterBool*   chorusOnParam;
+    juce::AudioParameterFloat*  chorusDepthParam;
+    juce::AudioParameterFloat*  chorusRateParam;
 
     std::atomic<bool> parametersChanged{ false };
     std::atomic<int> useHostBPM{ 1 };

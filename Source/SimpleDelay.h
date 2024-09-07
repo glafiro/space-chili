@@ -14,7 +14,6 @@ using std::array;
 #define MAX_DELAY_LENGTH			2500.0f
 #define DEFAULT_SAMPLE_RATE			44100
 #define DEFAULT_FEEDBACK_GAIN		0.0f
-#define DEFAULT_FILTER_FREQUENCY	3.0f
 #define DEFAULT_DRY_WET_MIX			0.5f
 
 struct SimpleDelay {
@@ -33,18 +32,15 @@ struct SimpleDelay {
 
 		sampleRate = _sampleRate;
 
-		crossfadeInc = (1.0f / (0.05f * sampleRate));
-
 		const auto lengthInSamples = static_cast<int>((lengthToSamples(sampleRate, lengthInMs)));
 		delayBufferSize = static_cast<int>((lengthToSamples(sampleRate, MAX_DELAY_LENGTH)));
 
 		ringBuffer = RingBuffer<float>(delayBufferSize);
 
-		paramFilter.setFrequency(DEFAULT_FILTER_FREQUENCY / sampleRate);
 	}
 
 	void processBlock(float* const* inputBuffer, int numChannels, int numSamples, int activeChannel, 
-		vector<float> delayValues) {
+		vector<float> delayValues, float amplitude) {
 		for (auto s = 0; s < numSamples; ++s) {
 
 			auto sample = inputBuffer[activeChannel][s];
@@ -57,7 +53,7 @@ struct SimpleDelay {
 
 			ringBuffer.write(sample + delayRead * feedbackGain);
 
-			inputBuffer[activeChannel][s] = sample * (1.0 - dryWetMix) + delayRead * dryWetMix;
+			inputBuffer[activeChannel][s] = amplitude * sample * (1.0 - dryWetMix) + delayRead * dryWetMix;
 		}
 	}
 

@@ -26,22 +26,24 @@ public:
 
     FilteredParameter(float sr = DEFAULT_SR) : sampleRate(sr) {}
 
-    void prepare(float sr, float v) {
+    void prepare(float sr, float f, float v) {
         filter.setSampleRate(sr);
-        filter.setFrequency(frequency);
+        filter.setFrequency(f);
         value = v;
     }
 
-    float get() {
+    // Filter then return current value
+    float next() {
         return filter.process(value);
     }
+
+    // Just return current value
+    float read() {
+        return value;
+    }
+
 
     void setValue(float v) {
         value = v;
     }
-
-    void setFrequency(float f) {
-        filter.setFrequency(f);
-    }
-
 };

@@ -432,7 +432,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     layout.add(std::make_unique <juce::AudioParameterFloat>(
         ParameterID::chorusRate,
         "Chorus Rate",
-        juce::NormalisableRange<float>{0.2f, 1.2f, 0.1f},
+        juce::NormalisableRange<float>{0.25f, 0.5f, 0.01f},
         DEFAULT_CHORUS_RATE
     ));
 

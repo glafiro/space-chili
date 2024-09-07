@@ -48,6 +48,12 @@ public:
         sampleRate = sr;
     }
 
+    void prepare(float sr, float at, float rt) {
+        setSampleRate(sr);
+        setAttack(at);
+        setRelease(rt);
+    }
+
     float process(float in) {
         float rectified = std::fabs(in) * sensitivity;
         if (rectified > env) {
