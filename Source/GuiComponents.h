@@ -451,7 +451,10 @@ public:
         g.drawImage(bgImg, getLocalBounds().toFloat());
     }
 
-
+    void setOption(int idx) {
+        currentIndex = idx;
+        optionLabel.setText(options[currentIndex], juce::dontSendNotification);
+    }
 
     void resized() override
     {
@@ -510,6 +513,11 @@ public:
         // Store the parameter reference
         parameter = state.getParameter(parameterID);
 
+        auto currentIndex = static_cast<int>(parameter->getValue() * 2);
+        DBG("index");
+        DBG(currentIndex);
+        comboBox.setOption(currentIndex);
+        
         // Listen to the comboBox changes and update the parameter
         comboBox.leftButton.onClick = [this]() { comboBoxChanged(); };
         comboBox.rightButton.onClick = [this]() { comboBoxChanged(); };

@@ -373,7 +373,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
         ParameterID::timeMode,
         "Time mode",
         0, 2,
-        DEFAULT_TIME_MODE
+        1
     ));
 
     layout.add(std::make_unique <juce::AudioParameterBool>(
