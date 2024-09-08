@@ -29,7 +29,7 @@ enum TimeMode {STRAIGHT, TRIPLETS, DOTTED};
 #define DEFAULT_SUBDIVISION     3 // 1/8
 #define DEFAULT_TIME_MODE       TimeMode::STRAIGHT
 #define DEFAULT_IS_PINGPONG     0.0f
-#define DEFAULT_LR_RATIO        1.0f
+#define DEFAULT_LR_RATIO        1.01f
 #define DEFAULT_LOW_PASS        20000.0f
 #define DEFAULT_HIGH_PASS       20.0f
 #define DEFAULT_DUCKING         0.0f
@@ -53,7 +53,8 @@ namespace ParameterID
     PARAMETER_ID(internalBPM)
     PARAMETER_ID(syncedTimeSubdivisionL)
     PARAMETER_ID(syncedTimeSubdivisionR)
-    PARAMETER_ID(timeMode)
+    PARAMETER_ID(timeModeL)
+    PARAMETER_ID(timeModeR)
     PARAMETER_ID(pingPong)
     PARAMETER_ID(leftRightRatio)
     PARAMETER_ID(lowPassFreq)
@@ -127,7 +128,8 @@ private:
     juce::AudioParameterFloat*  internalBPMParam;
     juce::AudioParameterChoice* syncedTimeSubdivParamL;
     juce::AudioParameterChoice* syncedTimeSubdivParamR;
-    juce::AudioParameterInt*    timeModeParam;
+    juce::AudioParameterInt*    timeModeParamL;
+    juce::AudioParameterInt*    timeModeParamR;
     juce::AudioParameterBool*   pingPongParam;
     juce::AudioParameterFloat*  leftRightRatioParam;
     juce::AudioParameterFloat*  lowPassFreqParam;

@@ -51,7 +51,8 @@ DelayAudioProcessor::DelayAudioProcessor()
     castParameter(apvts, ParameterID::internalBPM, internalBPMParam);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionL, syncedTimeSubdivParamL);
     castParameter(apvts, ParameterID::syncedTimeSubdivisionR, syncedTimeSubdivParamR);
-    castParameter(apvts, ParameterID::timeMode, timeModeParam);
+    castParameter(apvts, ParameterID::timeModeL, timeModeParamL);
+    castParameter(apvts, ParameterID::timeModeR, timeModeParamR);
     castParameter(apvts, ParameterID::pingPong, pingPongParam);
     castParameter(apvts, ParameterID::leftRightRatio, leftRightRatioParam);
     castParameter(apvts, ParameterID::lowPassFreq, lowPassFreqParam);
@@ -234,9 +235,9 @@ void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM
     float rightDelaySize;
 
     if (syncToBPMParam->get()) {
-        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, timeModeParam->get());
+        leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, timeModeParamL->get());
         if (linkedSizes) rightDelaySize = leftDelaySize;
-        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParam->get());
+        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParamR->get());
     }
 
     else {
@@ -358,22 +359,29 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
     layout.add(std::make_unique <juce::AudioParameterChoice>(
         ParameterID::syncedTimeSubdivisionL,
         "Time",
-        juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
+        juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64"},
         DEFAULT_SUBDIVISION
         ));
     
     layout.add(std::make_unique <juce::AudioParameterChoice>(
         ParameterID::syncedTimeSubdivisionR,
         "Time",
-        juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16"},
+        juce::StringArray{ "1/1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64"},
         DEFAULT_SUBDIVISION
         ));
 
     layout.add(std::make_unique <juce::AudioParameterInt>(
-        ParameterID::timeMode,
-        "Time mode",
+        ParameterID::timeModeL,
+        "Time mode left",
         0, 2,
-        1
+        DEFAULT_TIME_MODE
+    ));
+
+    layout.add(std::make_unique <juce::AudioParameterInt>(
+        ParameterID::timeModeR,
+        "Time mode left",
+        0, 2,
+        DEFAULT_TIME_MODE
     ));
 
     layout.add(std::make_unique <juce::AudioParameterBool>(

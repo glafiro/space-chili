@@ -40,6 +40,7 @@ namespace Colors
 {
     const juce::Colour coloredLight{ 255, 160, 150 };
     const juce::Colour dimLight{ 126, 89, 89 };
+    const juce::Colour altLight{ 192, 255, 187 };
     const juce::Colour btnText{ 96, 87, 55 };
 }
 
@@ -60,6 +61,9 @@ public:
         slider.setRotaryParameters(1.25f * pi, 2.75f * pi, true);
 
         int knobType = slider.getProperties().getWithDefault("type", 0);
+        auto mode = static_cast<int>(slider.getProperties().getWithDefault("mode", 0));
+        juce::Colour mainColor = mode == 0 ? Colors::coloredLight : Colors::altLight;
+
         float dialRadius, bottomLineWidth;
 
         if (knobType == 0) {
@@ -71,6 +75,7 @@ public:
             bottomLineWidth = 5.0f;
         }
 
+        
         float halfDialRadius = dialRadius / 2.0f;
 
         auto bounds = juce::Rectangle<int>(x, y, w, h).toFloat();
@@ -88,10 +93,11 @@ public:
         juce::Path ellipsePath;
         ellipsePath.addEllipse(dialPos.getX() - halfDialRadius, dialPos.getY() - halfDialRadius, dialRadius, dialRadius);
 
-        juce::DropShadow dropShadow{ Colors::coloredLight, static_cast<int>(dialRadius) + 3, {0, 0} };
+        g.setColour(mainColor);
+
+        juce::DropShadow dropShadow{ mainColor, static_cast<int>(dialRadius) + 3, {0, 0} };
         dropShadow.drawForPath(g, ellipsePath);
 
-        g.setColour(Colors::coloredLight);
         g.fillPath(ellipsePath);
 
         auto arcRadius = radius - 3.0f;
@@ -112,8 +118,12 @@ public:
 
         float topLineWidth = bottomLineWidth + 1;
 
+
+
         strokeType = juce::PathStrokeType(
             topLineWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
+
+        auto begin = knobType == 2 ? (startAngle + endAngle) / 2.0f : startAngle;
 
         if (slider.isEnabled()) {
             juce::Path valueArc;
@@ -122,10 +132,10 @@ public:
                 arcRadius,
                 arcRadius,
                 0.0f,
-                startAngle,
+                begin,
                 toAngle,
                 true);
-            g.setColour(Colors::coloredLight);
+            g.setColour(mainColor);
             g.strokePath(valueArc, strokeType);
         }
     }
@@ -327,7 +337,7 @@ public:
     juce::Slider slider;
     int width, height;
     int left, top;
-    int type;
+    int type, mode{0};
 
     // TYPE: 0 - normal, 1 - small, 2 - stereo offset
     Knob(int w = KNOB_W, int h = KNOB_H, int l = KNOB_L, int t = KNOB_T, int tp = 0 ) :
@@ -337,11 +347,18 @@ public:
         slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
         slider.setBounds(0, 0, width, height);
         slider.getProperties().set("type", type);
+        slider.getProperties().set("mode", mode);
         addAndMakeVisible(slider);
 
         setSize(width, height);
 
         setLookAndFeel(KnobLookAndFeel::get());
+    }
+
+    // 0 = normal, 1 = alternative
+    void setMode(int m = 0) {
+        slider.getProperties().set("mode", m);
+        repaint();
     }
 
     ~Knob() {}
@@ -469,6 +486,9 @@ public:
         optionLabel.setBounds(area);  // Centered label between buttons
     }
 
+    std::function<void()> timeModeChanged;
+
+
     void buttonClicked(juce::Button* button) override
     {
         if (button == &leftButton)
@@ -480,6 +500,8 @@ public:
         {
             currentIndex = (currentIndex + 1) % options.size(); // Cycle forward
         }
+
+        if (timeModeChanged) timeModeChanged();
 
         // Update the label text with the current option
         optionLabel.setText(options[currentIndex], juce::dontSendNotification);
@@ -709,4 +731,98 @@ private:
     juce::RangedAudioParameter* clockSrcParam = nullptr;
     juce::AudioProcessorValueTreeState& state;
 
+};
+
+class TimeManagementGroup : public juce::Component
+{
+    Knob* leftKnob;
+    Knob* rightKnob;
+    ImageToggleBtn* linkedBtn;
+    TimeModeBox* timeModeL;
+    TimeModeBox* timeModeR;
+    ImageToggleBtn* syncSwitch;
+    juce::AudioProcessorValueTreeState& apvts;
+    bool synced{false};
+    bool linked{false};
+    // 0 left, 1 right
+    int lastKnobUsed = 0;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> leftDelayAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> rightDelayAttachment;
+
+public:
+    TimeManagementGroup(juce::AudioProcessorValueTreeState& state, Knob* left, Knob* right, ImageToggleBtn* link, TimeModeBox* modeL, TimeModeBox* modeR, ImageToggleBtn* sync) :
+        apvts(state), leftKnob(left), rightKnob(right), linkedBtn(link), timeModeL(modeL), timeModeR(modeR), syncSwitch(sync) {
+        syncSwitch->btn.onClick = [this]() { syncSwitchClicked(); };
+        linkedBtn->btn.onClick = [this]() { linkBtnClicked(); };
+        leftKnob->slider.onValueChange = [this]() { leftKnobChanged(); };
+        rightKnob->slider.onValueChange = [this]() { rightKnobChanged(); };
+        timeModeL->timeModeChanged = [this]() {leftTimeModeChanged(); };
+        timeModeR->timeModeChanged = [this]() {rightTimeModeChanged(); };
+        synced = syncSwitch->btn.getToggleState();
+        leftKnob->setMode(static_cast<int>(synced));
+        rightKnob->setMode(static_cast<int>(synced));
+        assignParameters();
+
+    }
+
+    void leftTimeModeChanged() {
+        if (linked) {
+            timeModeR->setOption(timeModeL->getCurrentOptionIndex());
+        }
+    }
+    
+    void rightTimeModeChanged() {
+        if (linked) {
+            timeModeL->setOption(timeModeR->getCurrentOptionIndex());
+        }
+    }
+
+    void assignParameters() {
+        leftDelayAttachment.reset();
+        rightDelayAttachment.reset();
+
+        if (synced) {
+            leftDelayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+                apvts, ParameterID::syncedTimeSubdivisionL.getParamID(), leftKnob->slider
+            );
+            
+            rightDelayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+                apvts, ParameterID::syncedTimeSubdivisionR.getParamID(), rightKnob->slider
+            );
+        }
+        else {
+            leftDelayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+                apvts, ParameterID::leftDelaySize.getParamID(), leftKnob->slider
+            );
+
+            rightDelayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+                apvts, ParameterID::rightDelaySize.getParamID(), rightKnob->slider
+            );
+        }
+    }
+
+    void syncSwitchClicked() {
+
+        synced = syncSwitch->btn.getToggleState();
+        assignParameters();
+        leftKnob->setMode(static_cast<int>(synced));
+        rightKnob->setMode(static_cast<int>(synced));
+    }
+
+    void leftKnobChanged() {
+        lastKnobUsed = 0;
+        if (linked) rightKnob->slider.setValue(leftKnob->slider.getValue());
+    }
+    
+    void rightKnobChanged() {
+        lastKnobUsed = 1;
+        if (linked) leftKnob->slider.setValue(rightKnob->slider.getValue());
+    }
+
+    void linkBtnClicked() {
+        linked = linkedBtn->btn.getToggleState();
+        if (lastKnobUsed == 0) leftKnobChanged();
+        else rightKnobChanged();
+        leftTimeModeChanged();
+    }
 };

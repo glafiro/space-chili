@@ -13,7 +13,7 @@
 #define MULT_L  1.5f 
 #define MULT_XL 2.0f
 
-#define MULT MULT_L
+#define MULT MULT_M
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
@@ -59,13 +59,11 @@ private:
     juce::Image bpmScreenImg;
     juce::Image presetManagerImg;
 
+
+
     Knob leftLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN, TOP_MARGIN, 0};
-    juce::AudioProcessorValueTreeState::SliderAttachment leftLengthAttachment{
-        audioProcessor.apvts, ParameterID::leftDelaySize.getParamID(), leftLengthKnob.slider
-    };    Knob rightLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + KNOB_SIZE + KNOB_SPACING, TOP_MARGIN, 0};
-    juce::AudioProcessorValueTreeState::SliderAttachment rightLengthAttachment {
-        audioProcessor.apvts, ParameterID::rightDelaySize.getParamID(), rightLengthKnob.slider
-    };
+    Knob rightLengthKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + KNOB_SIZE + KNOB_SPACING, TOP_MARGIN, 0};
+
     Knob feedbackKnob{KNOB_SIZE, KNOB_SIZE, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 2, TOP_MARGIN, 0};
     juce::AudioProcessorValueTreeState::SliderAttachment feedbackAttachment{
         audioProcessor.apvts, ParameterID::feedback.getParamID(), feedbackKnob.slider
@@ -116,16 +114,17 @@ private:
     };
     TimeModeBox timeDivLeftBox{ static_cast<int>(90 * MULT),  static_cast<int>(28 * MULT), static_cast<int>(43 * MULT), static_cast<int>(205 * MULT) };
     TimeModeBoxAttachment timeDivLeftAttachment{
-        audioProcessor.apvts, ParameterID::timeMode.getParamID(), timeDivLeftBox
+        audioProcessor.apvts, ParameterID::timeModeL.getParamID(), timeDivLeftBox
     };
     TimeModeBox timeDivRightBox{ static_cast<int>(90 * MULT),  static_cast<int>(28 * MULT), static_cast<int>(180 * MULT), static_cast<int>(205 * MULT) };
     TimeModeBoxAttachment timeDivRightAttachment{
-        audioProcessor.apvts, ParameterID::timeMode.getParamID(), timeDivRightBox
+        audioProcessor.apvts, ParameterID::timeModeR.getParamID(), timeDivRightBox
     };
     BPMScreen bpmScreen{ 111 * MULT, 71 * MULT, 164 * MULT, 315 * MULT};
     BPMScreenAttachment bpmScreenAttachment{
     audioProcessor.apvts, ParameterID::internalBPM.getParamID(), ParameterID::internalOrHost.getParamID(), bpmScreen };
 
+    TimeManagementGroup tmg{ audioProcessor.apvts, &leftLengthKnob, &rightLengthKnob, &linkBtn, &timeDivLeftBox, &timeDivRightBox, &tempoSyncBtn};
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayAudioProcessorEditor)
 };
