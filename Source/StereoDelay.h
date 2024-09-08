@@ -71,7 +71,6 @@ struct StereoDelay {
 		feedbackGain.prepare(sampleRate, DEFAULT_FILTER_FREQ, params["feedback"]);
 		mix.prepare(sampleRate, DEFAULT_FILTER_FREQ, params["mix"]);
 		duckingAmt.prepare(sampleRate, DEFAULT_FILTER_FREQ, params["ducking"]);
-		
 	}
 
 	void update(DSPParameters<float>& params) {
