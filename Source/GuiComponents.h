@@ -39,6 +39,7 @@
 namespace Colors
 {
     const juce::Colour coloredLight{ 255, 160, 150 };
+    const juce::Colour dimLight{ 126, 89, 89 };
     const juce::Colour btnText{ 96, 87, 55 };
 }
 
@@ -555,9 +556,14 @@ public:
         bpmFont = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::game_over_ttf, BinaryData::game_over_ttfSize));
     }
 
+    void setOn(bool on) {
+        isOn = on;
+        repaint();
+    }
+
     void mouseDown(const juce::MouseEvent& event) override
     {
-        if (this->getProperties().getWithDefault("draggable", 0)) {
+        if (isOn) {
             startY = event.getPosition().getY();
             startValue = getValue();
             setMouseCursor(juce::MouseCursor::UpDownResizeCursor);
@@ -566,7 +572,7 @@ public:
 
     void mouseDrag(const juce::MouseEvent& event) override
     {
-        if (this->getProperties().getWithDefault("draggable", 0)) {
+        if (isOn) {
             int deltaY = startY - event.getDistanceFromDragStartY();
             double range = getMaximum() - getMinimum();
 
@@ -584,7 +590,12 @@ public:
     {
         auto fontSize = getLocalBounds().getHeight() * 0.8f;
         g.setFont(bpmFont.withHeight(fontSize));
-        g.setColour(Colors::coloredLight);
+        if (isOn) {
+            g.setColour(Colors::coloredLight);
+        }
+        else {
+            g.setColour(Colors::dimLight);
+        }
         g.drawText(juce::String(getValue(), 1), getLocalBounds(), juce::Justification::centred, true);
     }
 
@@ -592,10 +603,13 @@ private:
     int startY = 0;
     double startValue = 0.0;
     juce::Font bpmFont;
+    bool isOn;
+
 };
 
 class BPMScreen : public juce::Component
 {
+
 public: 
     int width, height;
     int left, top;
@@ -604,10 +618,9 @@ public:
     juce::TextButton hostBtn{"HOST"};
     float buttonRatio = 0.714f;
 
-    BPMScreen(float w = TDIV_W, float h = TDIV_H, float l = TDIV_L, float t = TDIV_T) :
+    BPMScreen(float w = TDIV_W, float h = TDIV_H, float l = TDIV_L, float t = TDIV_T) : 
         width(static_cast<int>(w)), height(static_cast<int>(h)), left(static_cast<int>(l)), top(static_cast<int>(t))
     {
-
         setBounds(0, 0, width, height);
 
         hostBtn.setRadioGroupId(1);  
@@ -621,6 +634,7 @@ public:
         bpmSlider.setRange(MIN_BPM, MAX_BPM, 0.1f);
         bpmSlider.getProperties().set("draggable", 0);
         bpmSlider.setValue(120.0f);
+        bpmSlider.setOn(false);
 
         addAndMakeVisible(bpmSlider);
         addAndMakeVisible(internalBtn);
@@ -670,7 +684,7 @@ public:
 
     void internalSelected()
     {
-        bpmScreen.bpmSlider.getProperties().set("draggable", 1);
+        bpmScreen.bpmSlider.setOn(true);
         if (clockSrcParam != nullptr)
         {
             clockSrcParam->setValueNotifyingHost(0.0f);
@@ -679,7 +693,7 @@ public:
 
     void hostSelected()
     {
-        bpmScreen.bpmSlider.getProperties().set("draggable", 0);
+        bpmScreen.bpmSlider.setOn(false);
 
         if (clockSrcParam != nullptr)
         {
