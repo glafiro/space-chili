@@ -23,6 +23,9 @@ namespace BinaryData
     extern const char*   game_over_ttf;
     const int            game_over_ttfSize = 19164;
 
+    extern const char*   HackRegular_ttf;
+    const int            HackRegular_ttfSize = 383104;
+
     extern const char*   linkoff_png;
     const int            linkoff_pngSize = 6747;
 
@@ -42,7 +45,7 @@ namespace BinaryData
     const int            timeselect_pngSize = 10462;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 11;
+    const int namedResourceListSize = 12;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

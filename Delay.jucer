@@ -12,6 +12,8 @@
       <FILE id="HHqgZj" name="chorusoff.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/chorusoff.png"/>
       <FILE id="ID5jVY" name="choruson.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/choruson.png"/>
       <FILE id="XJIoVY" name="game_over.ttf" compile="0" resource="1" file="../../../../SpaceChili/UI/game_over.ttf"/>
+      <FILE id="JhT2kz" name="Hack-Regular.ttf" compile="0" resource="1"
+            file="../../../../SpaceChili/UI/Hack-Regular.ttf"/>
       <FILE id="GZhdr1" name="linkoff.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/linkoff.png"/>
       <FILE id="ENr74L" name="linkon.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/linkon.png"/>
       <FILE id="rrSL2v" name="screens.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/screens.png"/>
@@ -20,6 +22,7 @@
       <FILE id="mEbiza" name="timeselect.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/timeselect.png"/>
     </GROUP>
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
+      <FILE id="ahIlyt" name="Styling.h" compile="0" resource="0" file="Source/Styling.h"/>
       <FILE id="Q9nljD" name="LinkedKnobs.h" compile="0" resource="0" file="Source/LinkedKnobs.h"/>
       <FILE id="Kuf9SL" name="GuiComponents.h" compile="0" resource="0" file="Source/GuiComponents.h"/>
       <FILE id="kzmHFw" name="FilteredParameter.h" compile="0" resource="0"
