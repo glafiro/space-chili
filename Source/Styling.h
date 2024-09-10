@@ -358,3 +358,100 @@ private:
         juce::Font labelFont;
     juce::Font btnFont;
 };
+
+
+class PresetMenuLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    PresetMenuLookAndFeel() {
+        btnFont = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::arial_narrow_7_ttf, BinaryData::arial_narrow_7_ttfSize));
+        presetFont = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::game_over_ttf, BinaryData::game_over_ttfSize));
+        menuFont = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::HackRegular_ttf, BinaryData::HackRegular_ttfSize));
+
+    }
+
+    static PresetMenuLookAndFeel* get() {
+        static PresetMenuLookAndFeel inst;
+        return &inst;
+    }
+
+    void drawButtonBackground(juce::Graphics& g, juce::Button& btn, const juce::Colour& bg, bool highlight, bool down) override {}
+
+    void drawButtonText(juce::Graphics& g, juce::TextButton& btn, bool highlight, bool down) override {
+        if (highlight) {
+            g.setColour(juce::Colours::white);
+        } else {
+            g.setColour(Colors::btnText);
+        }
+
+        float fontSize = btn.getLocalBounds().getHeight() * 0.7f; // Dynamically set font size based on label size
+
+        g.setFont(btnFont.withHeight(fontSize));
+        g.drawFittedText(btn.getButtonText(), btn.getLocalBounds(), juce::Justification::centred, 1);
+    }
+
+    juce::Font getComboBoxFont(juce::ComboBox& comboBox) override
+    {
+        return presetFont;
+    }
+
+    void positionComboBoxText(juce::ComboBox&, juce::Label& labelToPosition) override {}
+
+    void drawComboBox(juce::Graphics& g, int w, int h, bool down, int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& box) override {
+        const float textAreaWProportion = 0.88f;
+        
+        const auto bounds = box.getLocalBounds();
+        const auto textArea = juce::Rectangle<float>(bounds.getX() + bounds.getWidth() * 0.02f, bounds.getY(), w * textAreaWProportion, h);
+        const auto text = box.getText();
+         
+        g.setColour(Colors::coloredLight);
+        g.setFont(presetFont);
+        g.setFont(0.6f * h);
+        g.drawText(text, textArea, juce::Justification::left);
+
+
+        const auto arrowArea = juce::Rectangle<float>(w * textAreaWProportion, h * 0.38f, w * 0.065f, h * 0.25f);
+        juce::Path arrow;
+        arrow.addTriangle(arrowArea.getX(), arrowArea.getY(),
+            arrowArea.getX() + arrowArea.getWidth() / 2.0f, arrowArea.getY() + arrowArea.getHeight(),
+            arrowArea.getX() + arrowArea.getWidth(), arrowArea.getY());
+
+        juce::PathStrokeType stroke{ 2.0f };
+
+        g.setColour(Colors::coloredLight);
+        g.strokePath(arrow, stroke);
+    }
+
+    void drawComboBoxTextWhenNothingSelected(juce::Graphics& g, juce::ComboBox& box, juce::Label&) override {
+        const auto textArea = box.getLocalBounds().reduced(box.getLocalBounds().proportionOfHeight(0.1f));
+        const auto fontSize = box.getLocalBounds().getHeight() * 0.6f;
+        const auto text = box.getTextWhenNothingSelected();
+        g.setColour(Colors::dimLight);
+        g.setFont(presetFont);
+        g.setFont(fontSize);
+        g.drawText(text, textArea, juce::Justification::left);
+    }
+
+    void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
+    {
+        g.fillAll(Colors::black); 
+    }
+
+    void drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area, bool isSeparator, bool isActive,
+        bool isHighlighted, bool isTicked, bool hasSubMenu, const juce::String& text,
+        const juce::String& shortcutKeyText, const juce::Drawable* icon, const juce::Colour* textColour) override
+    {
+
+        g.setColour(isTicked ? Colors::coloredLight : juce::Colours::white); // Text color
+        g.setFont(menuFont);
+        g.drawFittedText(text, area.reduced(5), juce::Justification::centredLeft, 1);
+    }
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetMenuLookAndFeel)
+
+    juce::Font btnFont;
+    juce::Font presetFont;
+    juce::Font menuFont;
+};
+

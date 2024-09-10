@@ -538,3 +538,126 @@ public:
     }
    
 };
+
+
+class PresetMenu : public juce::Component, public juce::Button::Listener, public juce::ComboBox::Listener
+{
+    juce::TextButton saveBtn, deleteBtn, randBtn, nextBtn, prevBtn;
+    juce::ComboBox presetList;
+    PresetManager presetManager;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+
+public:
+    PresetMenu(juce::Rectangle<float> area, PresetManager& pm) : presetManager(pm) {
+
+        createButton(saveBtn, "SAVE");
+        createButton(deleteBtn, " DELETE"); // hackiest hack
+        createButton(randBtn, "RAND");
+        createButton(nextBtn, ">");
+        createButton(prevBtn, "<");
+
+        presetList.setTextWhenNothingSelected("No preset selected");
+        addAndMakeVisible(presetList);
+        presetList.addListener(this);
+
+        loadPresetList();
+
+        setBounds(area.toNearestInt());
+        setSize(area.getWidth(), area.getHeight());
+
+        setLookAndFeel(PresetMenuLookAndFeel::get());
+
+    }
+
+    ~PresetMenu() {
+        saveBtn.removeListener(this);
+        deleteBtn.removeListener(this);
+        randBtn.removeListener(this);
+        nextBtn.removeListener(this);
+        prevBtn.removeListener(this);
+    }
+
+    void resized() override {
+        auto bounds = getLocalBounds();
+        int screenHeight = bounds.proportionOfHeight(0.72f);
+        int buttonHeight = bounds.proportionOfHeight(1 - 0.72f);
+        int buttonWidth = bounds.proportionOfWidth(0.20f);
+
+        prevBtn.setBounds(bounds.getX(), bounds.getY() + screenHeight, buttonWidth, buttonHeight);
+        nextBtn.setBounds(bounds.getX() + buttonWidth, bounds.getY() + screenHeight, buttonWidth, buttonHeight);
+        randBtn.setBounds(bounds.getX() + buttonWidth * 2, bounds.getY() + screenHeight, buttonWidth, buttonHeight);
+        saveBtn.setBounds(bounds.getX() + buttonWidth * 3, bounds.getY() + screenHeight, buttonWidth, buttonHeight);
+        deleteBtn.setBounds(bounds.getX() + buttonWidth * 4 + 2 * MULT, bounds.getY() + screenHeight, buttonWidth, buttonHeight);
+        presetList.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), screenHeight);
+    }
+
+private:
+    void buttonClicked(juce::Button* btn) {
+        if (btn == &saveBtn) {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Preset name:",
+                presetManager.defaultDir,
+                "*." + presetManager.ext
+            );
+            fileChooser->launchAsync(juce::FileBrowserComponent::saveMode, [&](const juce::FileChooser& chooser) {
+                const auto result = chooser.getResult();
+                presetManager.savePreset(result.getFileNameWithoutExtension());
+                loadPresetList();
+                }
+            );
+        }
+        if (btn == &nextBtn) {
+            const auto idx = presetManager.next();
+            presetList.setSelectedItemIndex(idx, juce::dontSendNotification);
+        }
+        if (btn == &prevBtn) {
+            const auto idx = presetManager.prev();
+            presetList.setSelectedItemIndex(idx, juce::dontSendNotification);
+        }
+        if (btn == &randBtn) {
+            const auto idx = presetManager.randomPreset();
+            presetList.setSelectedItemIndex(idx, juce::dontSendNotification);
+        }
+        if (btn == &deleteBtn) {
+
+            juce::NativeMessageBox::showYesNoCancelBox(
+                juce::MessageBoxIconType::QuestionIcon,
+                "Delete Confirmation",
+                "Are you sure you want to delete this item?",
+                nullptr,
+                juce::ModalCallbackFunction::create([this](int result) {
+                    if (result == 1) {
+                        presetManager.deletePreset(presetManager.getCurrent());
+                        loadPresetList();
+                    }
+                    })
+            );
+        }
+    }
+
+    void comboBoxChanged(juce::ComboBox* box) override {
+
+        if (box == &presetList) {
+            presetManager.loadPreset(presetList.getItemText(presetList.getSelectedItemIndex()));
+        }
+    }
+
+    void createButton(juce::Button& btn, const juce::String& text) {
+
+        btn.setButtonText(text);
+        addAndMakeVisible(btn);
+        btn.addListener(this);
+    }
+
+    void loadPresetList() {
+
+        presetList.clear(juce::dontSendNotification);
+        const auto allPresets = presetManager.getPresetList();
+        const auto currentPreset = presetManager.getCurrent();
+        presetList.addItemList(presetManager.getPresetList(), 1);
+        presetList.setSelectedItemIndex(allPresets.indexOf(currentPreset), juce::dontSendNotification);
+
+    }
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetMenu);
+};
