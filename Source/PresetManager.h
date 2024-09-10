@@ -34,13 +34,20 @@ public:
         }
 
         apvts.state.addListener(this);
-        current.referTo(apvts.state.getPropertyAsValue("presetName", nullptr));
+        current = apvts.state.getPropertyAsValue("presetName", nullptr).toString();
+
+        // The program will crash if we get a preset from a saved state that has been deleted.
+        // In that case, just assing current to an empty preset.
+        auto srcFile = defaultDir.getChildFile(current + "." + ext);
+        if (!srcFile.existsAsFile()) {
+            current = "";        
+        }
     }
 
     void savePreset(const juce::String& name) {
         if (name.isEmpty()) return;
 
-        current.setValue(name);
+        current = name;
         const auto xml = apvts.copyState().createXml();
         auto destFile = defaultDir.getChildFile(name + "." + ext);
         if (!xml->writeTo(destFile)) {
@@ -62,7 +69,7 @@ public:
             DBG("Could not delete file: " + srcFile.getFullPathName());
             jassertfalse;
         }
-        current.setValue("");
+        current = "";
     }
     void loadPreset(const juce::String& name) {
         if (name.isEmpty()) return;
@@ -77,12 +84,12 @@ public:
         const auto newValueTree = juce::ValueTree::fromXml(*xmlDocument.getDocumentElement());
 
         apvts.replaceState(newValueTree);
-        current.setValue(name);
+        current = name;
     }
     int next() {
         const auto allPresets = getPresetList();
         if (allPresets.isEmpty()) return -1;
-        const auto currentIndex = allPresets.indexOf(current.toString());
+        const auto currentIndex = allPresets.indexOf(current);
         const auto nextIndex = (currentIndex + 1) % allPresets.size();
         loadPreset(allPresets.getReference(nextIndex));
         return nextIndex;
@@ -90,7 +97,7 @@ public:
     int prev() {
         const auto allPresets = getPresetList();
         if (allPresets.isEmpty()) return -1;
-        const auto currentIndex = allPresets.indexOf(current.toString());
+        const auto currentIndex = allPresets.indexOf(current);
         const auto prevIndex = currentIndex - 1 < 0 ? allPresets.size() - 1 : currentIndex - 1;
         loadPreset(allPresets.getReference(prevIndex));
         return prevIndex;
@@ -114,14 +121,18 @@ public:
         return presets;
     }
     juce::String getCurrent() const {
-        return current.toString();
+        return current;
     }
 
 private:
     void valueTreeRedirected (juce::ValueTree& tree) override {
-        current.referTo(tree.getPropertyAsValue("presetName", nullptr));
+        current = tree.getPropertyAsValue("presetName", nullptr).toString();
+        auto srcFile = defaultDir.getChildFile(current + "." + ext);
+        if (!srcFile.existsAsFile()) {
+            current = "";
+        }
     }
 
     juce::AudioProcessorValueTreeState& apvts;
-    juce::Value current;
+    juce::String current;
 };

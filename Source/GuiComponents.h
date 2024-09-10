@@ -627,7 +627,10 @@ private:
                 nullptr,
                 juce::ModalCallbackFunction::create([this](int result) {
                     if (result == 1) {
-                        presetManager.deletePreset(presetManager.getCurrent());
+                        const auto text = presetManager.getCurrent();
+                        DBG("current");
+                        DBG(text);
+                        presetManager.deletePreset(text);
                         loadPresetList();
                     }
                     })
