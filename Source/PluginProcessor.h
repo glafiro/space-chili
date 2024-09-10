@@ -12,6 +12,8 @@
 #include "StereoDelay.h"
 #include "Chorus.h"
 #include "DSPParameters.h"
+#include "PresetManager.h"
+
 
 #define PLUGIN_VERSION 1    
 
@@ -111,7 +113,9 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
+    juce::AudioProcessorValueTreeState apvts;
+    
+    PresetManager& getPresetManager() { return *presetManager; }
 
 private:
     //==============================================================================
@@ -150,6 +154,11 @@ private:
         useHostBPM.store(internalOrHostParam->getIndex());
     }
 
+    void valueTreeRedirected(juce::ValueTree&) override {
+        parametersChanged.store(true);
+        useHostBPM.store(internalOrHostParam->getIndex());
+    }
+
     void update(juce::AudioBuffer<float>& buffer, float bpm);
 
     // DSP
@@ -157,5 +166,8 @@ private:
     Chorus chorus;
     DSPParameters<float> delayParameters;
     DSPParameters<float> chorusParameters;
+
+    std::unique_ptr<PresetManager>presetManager;    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayAudioProcessor)
 };

@@ -36,6 +36,7 @@ DelayAudioProcessorEditor::DelayAudioProcessorEditor (DelayAudioProcessor& p)
     addAndMakeVisible(pingPongBtn);
     addAndMakeVisible(bpmScreen);
     addAndMakeVisible(tmg);
+    addAndMakeVisible(presetMenu);
 
     setSize (BASE_W * MULT, BASE_H * MULT);
 }
@@ -72,4 +73,5 @@ void DelayAudioProcessorEditor::resized()
     timeDivLeftBox  .setBounds(timeDivLeftBox.left, timeDivLeftBox.top, timeDivLeftBox.width, timeDivLeftBox.height);
     timeDivRightBox .setBounds(timeDivRightBox.left, timeDivRightBox.top, timeDivRightBox.width, timeDivRightBox.height);
     bpmScreen       .setBounds(bpmScreen.left, bpmScreen.top, bpmScreen.width, bpmScreen.height);
+    presetMenu      .setBounds(presetMenu.getBounds());
 }

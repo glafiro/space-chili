@@ -58,10 +58,6 @@ public:
 
         setLookAndFeel(KnobLookAndFeel::get());
     }
-    
-    void resized() override {
-        slider.setBounds(0, 0, width, height);
-    }
 
     // 0 = normal, 1 = alternative
     void setMode(int m = 0) {

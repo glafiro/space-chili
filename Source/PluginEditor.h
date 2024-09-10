@@ -120,6 +120,7 @@ private:
 
     juce::Rectangle<float> tmgArea{ 0, 0, LEFT_MARGIN + (KNOB_SIZE + KNOB_SPACING) * 2, 251 * MULT + 24 * MULT };
     TimeManagementGroup tmg{ tmgArea, audioProcessor.apvts, &leftLengthKnob, &rightLengthKnob, &linkBtn, &timeDivLeftBox, &timeDivRightBox, &tempoSyncBtn};
-    
+
+    PresetMenu presetMenu{ juce::Rectangle<float>(574 * MULT, 225 * MULT, 238 * MULT, 70 * MULT), audioProcessor.getPresetManager()};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayAudioProcessorEditor)
 };

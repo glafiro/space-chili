@@ -36,11 +36,19 @@ DelayAudioProcessor::DelayAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        ),
+    apvts( *this, nullptr, "Parameters", createParameterLayout() ),
     delay(),
     chorus()
 #endif
 {
+    if (!apvts.state.isValid()) {
+        DBG("Invalid value tree");
+        jassertfalse;
+    }
+    apvts.state.setProperty("presetName", "", nullptr);
     apvts.state.addListener(this);
+    presetManager = std::make_unique<PresetManager>(apvts);
+
     castParameter(apvts, ParameterID::leftDelaySize, leftDelaySizeParam);
     castParameter(apvts, ParameterID::rightDelaySize, rightDelaySizeParam);
     castParameter(apvts, ParameterID::feedback, feedbackParam);
@@ -66,6 +74,7 @@ DelayAudioProcessor::DelayAudioProcessor()
 
 DelayAudioProcessor::~DelayAudioProcessor()
 {
+    apvts.state.removeListener(this);
 }
 
 //==============================================================================
