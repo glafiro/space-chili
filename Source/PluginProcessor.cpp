@@ -18,7 +18,7 @@ inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
     // parameter does not exist or wrong type
 }
 
-float BPM2Ms(int choice, float tempo=120.0f, int timeMode=0) {
+float BPM2Ms(int choice, float tempo=120.0f, int timeMode=1) {
     auto mult = 4.0f / static_cast<float>(1 << (choice));
     if (timeMode == TimeMode::TRIPLETS) mult *= (2.0f / 3.0f);   
     if (timeMode == TimeMode::DOTTED) mult *= 1.5f;
@@ -238,21 +238,18 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 
 void DelayAudioProcessor::update(juce::AudioBuffer<float>& buffer, float hostBPM) {
     float bpm = useHostBPM.load() ? hostBPM : internalBPMParam->get();
-    bool linkedSizes = delaySyncParam->get();
 
     float leftDelaySize;
     float rightDelaySize;
 
     if (syncToBPMParam->get()) {
         leftDelaySize = BPM2Ms(syncedTimeSubdivParamL->getIndex(), bpm, timeModeParamL->get());
-        if (linkedSizes) rightDelaySize = leftDelaySize;
-        else rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParamR->get());
+        rightDelaySize = BPM2Ms(syncedTimeSubdivParamR->getIndex(), bpm, timeModeParamR->get());
     }
 
     else {
         leftDelaySize = leftDelaySizeParam->get();
-        if (linkedSizes) rightDelaySize = leftDelaySize;
-        else rightDelaySize = rightDelaySizeParam->get();
+        rightDelaySize = rightDelaySizeParam->get();
     }
 
     rightDelaySize *= leftRightRatioParam->get();

@@ -67,6 +67,7 @@ public:
 
     }
 
+
     void drawRotarySlider(juce::Graphics& g, int x, int y, int w, int h, float pos, float startAngle, float endAngle, juce::Slider& slider) override {
 
         slider.setRotaryParameters(rotaryStart, rotaryEnd, true);
@@ -284,18 +285,20 @@ public:
         static TimeModeLookAndFeel inst;
         return &inst;
     }
-
-    // Customize Label appearance
-    void drawLabel(juce::Graphics& g, juce::Label& label) override
-    {
-        auto bounds = label.getLocalBounds(); // Get the label's bounds
+    
+    void drawComboBox(juce::Graphics& g, int w, int h, bool down, int x, int y, int btnW, int btnH, juce::ComboBox& box) override {
+        auto bounds = box.getLocalBounds(); // Get the label's bounds
         float fontSize = bounds.getHeight() * 0.7f; // Dynamically set font size based on label size
         g.setFont(labelFont.withHeight(fontSize));
         g.setColour(Colors::btnText);
-        g.drawFittedText(label.getText(), label.getLocalBounds(), juce::Justification::centred, 1);
+        g.drawFittedText(box.getText(), box.getLocalBounds(), juce::Justification::centred, 1);
     }
 
+
     void drawButtonBackground(juce::Graphics& g, juce::Button& btn, const juce::Colour& bg, bool highlight, bool down) override {}
+
+    void positionComboBoxText(juce::ComboBox&, juce::Label& labelToPosition) override {}
+
 
     void drawButtonText(juce::Graphics& g, juce::TextButton& btn, bool highlight, bool down) override {
         if (highlight) {

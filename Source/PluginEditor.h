@@ -107,12 +107,12 @@ private:
         audioProcessor.apvts, ParameterID::syncToBPM.getParamID(), tempoSyncBtn.btn
     };
     TimeModeBox timeDivLeftBox{ 90 * MULT,  28 * MULT, 43 * MULT, 205 * MULT };
-    TimeModeBoxAttachment timeDivLeftAttachment{
-        audioProcessor.apvts, ParameterID::timeModeL.getParamID(), timeDivLeftBox
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment timeDivLeftAttachment{
+        audioProcessor.apvts, ParameterID::timeModeL.getParamID(), timeDivLeftBox.optionBox
     };
     TimeModeBox timeDivRightBox{ 90 * MULT,  28 * MULT, 180 * MULT, 205 * MULT };
-    TimeModeBoxAttachment timeDivRightAttachment{
-        audioProcessor.apvts, ParameterID::timeModeR.getParamID(), timeDivRightBox
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment timeDivRightAttachment{
+        audioProcessor.apvts, ParameterID::timeModeR.getParamID(), timeDivRightBox.optionBox
     };
     BPMScreen bpmScreen{ 111 * MULT, 71 * MULT, 164 * MULT, 315 * MULT};
     BPMScreenAttachment bpmScreenAttachment{

@@ -135,20 +135,32 @@ public:
     }
 };
 
+class OptionBox : public juce::ComboBox
+{
+public:
+    OptionBox() = default;
+
+    void mouseDown(const juce::MouseEvent& e) override {}
+
+};
+
 class TimeModeBox : public juce::Component, public juce::Button::Listener
 {
 public:
     int width, height;
     int top, left;
     juce::Image bgImg;
+    OptionBox optionBox;
+    juce::TextButton leftButton{ "<" };
+    juce::TextButton rightButton{ ">" };
 
     TimeModeBox(float w = TDIV_W, float h = TDIV_H, float l = TDIV_L, float t = TDIV_T) :
         width(w), height(h), left(l), top(t)
     {
         // Initialize the array of values
-        options.add("Straight");
-        options.add("Triplets");
-        options.add("Dotted");
+        optionBox.addItem("Straight", 1);
+        optionBox.addItem("Triplets", 2);
+        optionBox.addItem("Dotted", 3);
 
         // Initialize buttons
         leftButton.setButtonText("<");
@@ -159,17 +171,13 @@ public:
         // Add and configure the buttons
         addAndMakeVisible(leftButton);
         addAndMakeVisible(rightButton);
-        addAndMakeVisible(optionLabel);
+        addAndMakeVisible(optionBox);
 
         bgImg = juce::ImageCache::getFromMemory(BinaryData::timeselect_png, BinaryData::timeselect_pngSize);
 
         // Add listeners
         leftButton.addListener(this);
         rightButton.addListener(this);
-
-        // Set initial option
-        currentIndex = 0;
-        optionLabel.setText(options[currentIndex], juce::dontSendNotification);
 
         setLookAndFeel(TimeModeLookAndFeel::get());
     }
@@ -178,10 +186,8 @@ public:
         g.drawImage(bgImg, getLocalBounds().toFloat());
     }
 
-    void setOption(int idx) {
-        currentIndex = idx;
-        optionLabel.setText(options[currentIndex], juce::dontSendNotification);
-    }
+    void mouseCallback(juce::MouseEvent& e) {}
+
 
     void resized() override
     {
@@ -192,7 +198,7 @@ public:
 
         leftButton.setBounds(area.removeFromLeft(buttonWidth));
         rightButton.setBounds(area.removeFromRight(buttonWidth));
-        optionLabel.setBounds(area);  // Centered label between buttons
+        optionBox.setBounds(area);  // Centered label between buttons
     }
 
     std::function<void()> timeModeChanged;
@@ -200,78 +206,28 @@ public:
 
     void buttonClicked(juce::Button* button) override
     {
+        auto currentIndex = optionBox.getSelectedItemIndex();
         if (button == &leftButton)
         {
             currentIndex = (currentIndex - 1);
-            if (currentIndex < 0) currentIndex += options.size();// Cycle back
+            if (currentIndex < 0) currentIndex += optionBox.getNumItems();// Cycle back
         }
         else if (button == &rightButton)
         {
-            currentIndex = (currentIndex + 1) % options.size(); // Cycle forward
+            currentIndex = (currentIndex + 1) % optionBox.getNumItems();
         }
 
+        optionBox.setSelectedItemIndex(currentIndex);
         if (timeModeChanged) timeModeChanged();
-
-        // Update the label text with the current option
-        optionLabel.setText(options[currentIndex], juce::dontSendNotification);
     }
 
-    // Function to get the current selected option
-    juce::String getCurrentOption() const
-    {
-        return options[currentIndex];
+    void setOption(int idx) {
+        optionBox.setSelectedItemIndex(idx);
     }
-
-    int getCurrentOptionIndex() const
-    {
-        return currentIndex;
-    }
-    juce::TextButton leftButton{ "<" };
-    juce::TextButton rightButton{ ">" };
 
 private:
-    juce::Label optionLabel;
 
     juce::StringArray options;
-    int currentIndex;
-};
-
-class TimeModeBoxAttachment
-{
-public:
-    TimeModeBoxAttachment(juce::AudioProcessorValueTreeState& state, const juce::String& parameterID, TimeModeBox& comboBox)
-        : comboBox(comboBox), state(state)
-    {
-        // Store the parameter reference
-        parameter = state.getParameter(parameterID);
-
-        auto currentIndex = static_cast<int>(parameter->getValue() * 2);
-        DBG("index");
-        DBG(currentIndex);
-        comboBox.setOption(currentIndex);
-        
-        // Listen to the comboBox changes and update the parameter
-        comboBox.leftButton.onClick = [this]() { comboBoxChanged(); };
-        comboBox.rightButton.onClick = [this]() { comboBoxChanged(); };
-
-    }
-
-    ~TimeModeBoxAttachment() = default;
-
-    void comboBoxChanged()
-    {
-        if (parameter != nullptr)
-        {
-            // Update the parameter value when the combo box changes
-            parameter->setValueNotifyingHost(comboBox.getCurrentOptionIndex() / 2.0f);
-        }
-    }
-
-private:
-    TimeModeBox& comboBox;
-    juce::RangedAudioParameter * parameter = nullptr;
-    juce::AudioProcessorValueTreeState& state;
-
 };
 
 class BPMSlider : public juce::Slider
@@ -478,13 +434,13 @@ public:
 
     void leftTimeModeChanged() {
         if (linked) {
-            timeModeR->setOption(timeModeL->getCurrentOptionIndex());
+            timeModeR->setOption(timeModeL->optionBox.getSelectedItemIndex());
         }
     }
     
     void rightTimeModeChanged() {
         if (linked) {
-            timeModeL->setOption(timeModeR->getCurrentOptionIndex());
+            timeModeL->setOption(timeModeR->optionBox.getSelectedItemIndex());
         }
     }
 
