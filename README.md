@@ -113,4 +113,4 @@ Use the chorus to add dimension and movement to your delay tails.
 
 ## License
 
-`space-chili` is ![GPLv3 licensed](https://github.com/glafiro/space-chili/blob/main/LICENSE).
+`space-chili` is [GPLv3 licensed](https://github.com/glafiro/space-chili/blob/main/LICENSE).
