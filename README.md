@@ -15,25 +15,6 @@ Space Chili is a completely free and open-source delay and chorus plug-in, avail
 - Preset management system.
 - Integrated low-pass and high-pass filters.
 
-## Table of Contents
-
-- [Space Chili](#space-chili)
-  - [Requirements](#requirements)
-  - [Usage](#usage)
-    - [1. **Delay Time: Left and Right Knobs**](#1.-**delay-time:-left-and-right-knobs**)
-    - [2. **Tempo Sync and Note Mode**](#2.-**tempo-sync-and-note-mode**)
-    - [3. **Feedback Knob**](#3.-**feedback-knob**)
-    - [4. **Mix Knob**](#4.-**mix-knob**)
-    - [5. **L/R Ratio Knob**](#5.-**l/r-ratio-knob**)
-    - [6. **Ping Pong Switch**](#6.-**ping-pong-switch**)
-    - [7. **Tempo Sync BPM Section**](#7.-**tempo-sync-bpm-section**)
-    - [8. **Ducking Knob**](#8.-**ducking-knob**)
-    - [9. **Chorus Section**](#9.-**chorus-section**)
-  - [Additional Features](#additional-features)
-    - [**Preset Selector**](#**preset-selector**)
-  - [License](#license)
-
-
 ## Requirements
 
 - macOS: macOS 10.11
@@ -132,4 +113,4 @@ Use the chorus to add dimension and movement to your delay tails.
 
 ## License
 
-`space-chili` is ![GPLv3 licensed](https://github.com/glafiro/space-chili/blob/main/LICENSE).
+`space-chili` is [GPLv3 licensed](https://github.com/glafiro/space-chili/blob/main/LICENSE).
