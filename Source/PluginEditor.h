@@ -18,7 +18,7 @@
 #define MULT_L  1.5f 
 #define MULT_XL 2.0f
 
-#define MULT MULT_M
+#define MULT MULT_S
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
