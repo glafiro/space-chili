@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="BLWazi" name="Space Chili" projectType="audioplug" useAppConfig="0"
+<JUCERPROJECT id="BLWazi" name="Space Chili" projectType="audioplug" useAppConfig="1"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Glafo's"
-              pluginManufacturerCode="GLAF" pluginCode="CILI" cppLanguageStandard="20"
-              pluginFormats="buildAU,buildVST3" pluginVST3Category="Delay,Fx">
+              pluginManufacturerCode="GLAF" pluginCode="CILI" cppLanguageStandard="17"
+              pluginFormats="buildAU,buildLV2,buildVST3" pluginVST3Category="Delay,Fx"
+              lv2Uri="https://github.com/glafiro/space-chili">
   <MAINGROUP id="oEGvMH" name="Space Chili">
     <GROUP id="{585E49CE-FB1D-F52D-8330-7462E9162A41}" name="Resources">
-      <FILE id="KOGUii" name="arial_narrow_7.ttf" compile="0" resource="1"
-            file="../../../../SpaceChili/UI/arial_narrow_7.ttf"/>
-      <FILE id="FL0vIV" name="base-layout.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/base-layout.png"/>
-      <FILE id="HHqgZj" name="chorusoff.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/chorusoff.png"/>
-      <FILE id="ID5jVY" name="choruson.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/choruson.png"/>
-      <FILE id="XJIoVY" name="game_over.ttf" compile="0" resource="1" file="../../../../SpaceChili/UI/game_over.ttf"/>
-      <FILE id="JhT2kz" name="Hack-Regular.ttf" compile="0" resource="1"
-            file="../../../../SpaceChili/UI/Hack-Regular.ttf"/>
-      <FILE id="GZhdr1" name="linkoff.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/linkoff.png"/>
-      <FILE id="ENr74L" name="linkon.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/linkon.png"/>
-      <FILE id="rrSL2v" name="screens.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/screens.png"/>
-      <FILE id="mZWGEn" name="sliderbtn.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/sliderbtn.png"/>
-      <FILE id="pFYAOG" name="switch.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/switch.png"/>
-      <FILE id="mEbiza" name="timeselect.png" compile="0" resource="1" file="../../../../SpaceChili/UI/components/timeselect.png"/>
+      <FILE id="ueBiwK" name="arial_narrow_7.ttf" compile="0" resource="1"
+            file="Resources/arial_narrow_7.ttf"/>
+      <FILE id="DSeCi6" name="base-layout.png" compile="0" resource="1" file="Resources/base-layout.png"/>
+      <FILE id="xq1HnF" name="chorusoff.png" compile="0" resource="1" file="Resources/chorusoff.png"/>
+      <FILE id="QJOHkl" name="choruson.png" compile="0" resource="1" file="Resources/choruson.png"/>
+      <FILE id="buLA53" name="game_over.ttf" compile="0" resource="1" file="Resources/game_over.ttf"/>
+      <FILE id="YJZowF" name="Hack-Regular.ttf" compile="0" resource="1"
+            file="Resources/Hack-Regular.ttf"/>
+      <FILE id="z4FJaP" name="linkoff.png" compile="0" resource="1" file="Resources/linkoff.png"/>
+      <FILE id="gbXi1F" name="linkon.png" compile="0" resource="1" file="Resources/linkon.png"/>
+      <FILE id="RoOxHe" name="screens.png" compile="0" resource="1" file="Resources/screens.png"/>
+      <FILE id="H0B5UN" name="sliderbtn.png" compile="0" resource="1" file="Resources/sliderbtn.png"/>
+      <FILE id="JN3YHw" name="switch.png" compile="0" resource="1" file="Resources/switch.png"/>
+      <FILE id="ArbLRI" name="timeselect.png" compile="0" resource="1" file="Resources/timeselect.png"/>
     </GROUP>
     <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
       <FILE id="XdZDSF" name="PresetManager.h" compile="0" resource="0" file="Source/PresetManager.h"/>
@@ -84,5 +85,25 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../../Libs/JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
 </JUCERPROJECT>

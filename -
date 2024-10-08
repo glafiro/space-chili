@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="BLWazi" name="Space Chili" projectType="audioplug" useAppConfig="1"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Glafo's"
+              pluginManufacturerCode="GLAF" pluginCode="CILI" cppLanguageStandard="17"
+              pluginFormats="buildAU,buildLV2,buildVST3" pluginVST3Category="Delay,Fx"
+              lv2Uri="https://github.com/glafiro/space-chili">
+  <MAINGROUP id="oEGvMH" name="Space Chili">
+    <GROUP id="{585E49CE-FB1D-F52D-8330-7462E9162A41}" name="Resources">
+      <FILE id="ueBiwK" name="arial_narrow_7.ttf" compile="0" resource="1"
+            file="Resources/arial_narrow_7.ttf"/>
+      <FILE id="DSeCi6" name="base-layout.png" compile="0" resource="1" file="Resources/base-layout.png"/>
+      <FILE id="xq1HnF" name="chorusoff.png" compile="0" resource="1" file="Resources/chorusoff.png"/>
+      <FILE id="QJOHkl" name="choruson.png" compile="0" resource="1" file="Resources/choruson.png"/>
+      <FILE id="buLA53" name="game_over.ttf" compile="0" resource="1" file="Resources/game_over.ttf"/>
+      <FILE id="YJZowF" name="Hack-Regular.ttf" compile="0" resource="1"
+            file="Resources/Hack-Regular.ttf"/>
+      <FILE id="z4FJaP" name="linkoff.png" compile="0" resource="1" file="Resources/linkoff.png"/>
+      <FILE id="gbXi1F" name="linkon.png" compile="0" resource="1" file="Resources/linkon.png"/>
+      <FILE id="RoOxHe" name="screens.png" compile="0" resource="1" file="Resources/screens.png"/>
+      <FILE id="H0B5UN" name="sliderbtn.png" compile="0" resource="1" file="Resources/sliderbtn.png"/>
+      <FILE id="JN3YHw" name="switch.png" compile="0" resource="1" file="Resources/switch.png"/>
+      <FILE id="ArbLRI" name="timeselect.png" compile="0" resource="1" file="Resources/timeselect.png"/>
+    </GROUP>
+    <GROUP id="{4084BB47-16C7-83E5-AF61-BEB1FFCB8C43}" name="Source">
+      <FILE id="XdZDSF" name="PresetManager.h" compile="0" resource="0" file="Source/PresetManager.h"/>
+      <FILE id="ahIlyt" name="Styling.h" compile="0" resource="0" file="Source/Styling.h"/>
+      <FILE id="Q9nljD" name="LinkedKnobs.h" compile="0" resource="0" file="Source/LinkedKnobs.h"/>
+      <FILE id="Kuf9SL" name="GuiComponents.h" compile="0" resource="0" file="Source/GuiComponents.h"/>
+      <FILE id="kzmHFw" name="FilteredParameter.h" compile="0" resource="0"
+            file="Source/FilteredParameter.h"/>
+      <FILE id="Y7llGD" name="DSPParameters.h" compile="0" resource="0" file="Source/DSPParameters.h"/>
+      <FILE id="f5yH3m" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
+      <FILE id="lsfwTn" name="SimpleDelay.h" compile="0" resource="0" file="Source/SimpleDelay.h"/>
+      <FILE id="pwHMMK" name="Chorus.h" compile="0" resource="0" file="Source/Chorus.h"/>
+      <FILE id="uMtObE" name="EnvFollower.h" compile="0" resource="0" file="Source/EnvFollower.h"/>
+      <FILE id="Ry0qfx" name="RingBuffer.h" compile="0" resource="0" file="Source/RingBuffer.h"/>
+      <FILE id="imZ1nj" name="StereoDelay.h" compile="0" resource="0" file="Source/StereoDelay.h"/>
+      <FILE id="DRyOFr" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
+      <FILE id="qtRpBn" name="OnePoleFilter.h" compile="0" resource="0" file="Source/OnePoleFilter.h"/>
+      <FILE id="TT4xHj" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="NpIHhW" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="DLxNEO" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="etb1vE" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="SpaceChili" enablePluginBinaryCopyStep="1"
+                       vst3BinaryLocation="C:\Users\dglaf\Documents\VSTPlugins"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="SpaceChili"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../Libs/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../Libs/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
