@@ -16,7 +16,7 @@ class PresetManager : juce::ValueTree::Listener
 {
 public:
     const juce::File defaultDir{ juce::File::getSpecialLocation(
-        juce::File::SpecialLocationType::commonDocumentsDirectory)
+        PRESET_FOLDER)
         .getChildFile(ProjectInfo::companyName)
         .getChildFile(ProjectInfo::projectName) };
 
